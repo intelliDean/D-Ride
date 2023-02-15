@@ -25,5 +25,5 @@ public class Details {
     private String name;
     private String password;
     private String email;
-    private LocalDateTime localDateTime;
+    private String registeredAt;
 }

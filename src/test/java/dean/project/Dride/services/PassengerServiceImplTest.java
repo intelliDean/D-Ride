@@ -9,6 +9,7 @@ import dean.project.Dride.data.dto.request.RegisterPassengerRequest;
 import dean.project.Dride.data.dto.response.RegisterResponse;
 import dean.project.Dride.data.models.Details;
 import dean.project.Dride.data.models.Passenger;
+import dean.project.Dride.services.passengerServices.PassengerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +43,7 @@ class PassengerServiceImplTest {
     @Test
     void getUser(){
         var registerResponse = passengerService.register(request);
-        Passenger p = passengerService.getPassengerById(registerResponse.getId());
+        Passenger p = passengerService.getById(registerResponse.getId());
         assertThat(p).isNotNull();
         Details d = p.getDetails();
         assertThat(d.getName()).isEqualTo(request.getName());

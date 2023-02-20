@@ -5,7 +5,7 @@ import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jackson.jsonpointer.JsonPointerException;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.ReplaceOperation;
-import dean.project.Dride.data.dto.request.RegisterPassengerRequest;
+import dean.project.Dride.data.dto.request.UserRegisterRequest;
 import dean.project.Dride.data.dto.response.RegisterResponse;
 import dean.project.Dride.data.models.Details;
 import dean.project.Dride.data.models.Passenger;
@@ -24,11 +24,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PassengerServiceImplTest {
     @Autowired
     PassengerService passengerService;
-    RegisterPassengerRequest request;
+    UserRegisterRequest request;
 
     @BeforeEach
     void setUp() {
-        request = new RegisterPassengerRequest();
+        request = new UserRegisterRequest();
         request.setName("Dean");
         request.setPassword("password");
         request.setEmail("@gmail");

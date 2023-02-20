@@ -4,35 +4,39 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
-import dean.project.Dride.dride_mappers.DrideMappers;
-import dean.project.Dride.exceptions.PassengerNotFoundException;
-import dean.project.Dride.data.dto.UpdatePassengerResponse;
-import dean.project.Dride.data.dto.request.PassengerDto;
+import dean.project.Dride.data.dto.response.UserUpdateResponse;
+import dean.project.Dride.data.dto.entitydtos.PassengerDto;
+import dean.project.Dride.data.dto.request.UserRegisterRequest;
+import dean.project.Dride.data.dto.response.RegisterResponse;
 import dean.project.Dride.data.models.Details;
 import dean.project.Dride.data.models.Passenger;
+import dean.project.Dride.data.repositories.AppUserRepo;
 import dean.project.Dride.data.repositories.PassengerRepository;
-import dean.project.Dride.data.dto.request.RegisterPassengerRequest;
-import dean.project.Dride.data.dto.response.RegisterResponse;
+import dean.project.Dride.exceptions.UserNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Slf4j
 @AllArgsConstructor
 @Service
 public class PassengerServiceImpl implements PassengerService {
-
-    // I use "@AllArgsConstructor and final" instead of @Autowire
     private final PassengerRepository passengerRepository;
+    private static final int NUMBER_OF_ITEMS_PER_PAGE = 3;
+    private final ModelMapper modelMapper;
 
 
     @Override
-    public RegisterResponse register(RegisterPassengerRequest registerPassengerRequest) {
-        Details details = DrideMappers.mapToDetails(registerPassengerRequest);
+    public RegisterResponse register(UserRegisterRequest userRegisterRequest) {
+        Details mappedDetails = modelMapper.map(userRegisterRequest, Details.class);
+        mappedDetails.setRegisteredAt(LocalDateTime.now().toString());
 
-        Passenger passenger = new Passenger();
-        passenger.setDetails(details);  //I am only interested in the basic details to register
+        Passenger passenger = Passenger.builder().details(mappedDetails).build();
 
         Passenger savedPassenger = passengerRepository.save(passenger);
 
@@ -40,16 +44,24 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     @Override
-    public Passenger getById(Long id) {
-      return passengerRepository.findById(id)
-              .orElseThrow(()-> new PassengerNotFoundException(
-                              String.format("Passenger with ID %d not found", id)
-                      )
-              );
+    public Passenger getById(Long userId) {
+        return passengerRepository.findById(userId)
+                .orElseThrow(()->new UserNotFoundException(String
+                        .format("Passenger with ID %d not found", userId)));
     }
 
     @Override
-    public UpdatePassengerResponse updateField(Long passId, JsonPatch updatePayload) {
+    public Passenger getByName(String name) {
+        Passenger passenger = passengerRepository.findPassengerByDetailsName(name);
+        if (passenger == null) {
+            throw new UserNotFoundException("Passenger not found");
+        }
+        return passenger;
+    }
+
+
+    @Override
+    public UserUpdateResponse updateField(Long passId, JsonPatch updatePayload) {
         ObjectMapper mapper = new ObjectMapper();
         Passenger passenger = getById(passId);
 
@@ -60,8 +72,9 @@ public class PassengerServiceImpl implements PassengerService {
             JsonNode updatedNode = updatePayload.apply(node);
             // convert node back to passenger object
             var updatedPassenger = mapper.convertValue(updatedNode, Passenger.class);
+            var savedPassenger = passengerRepository.save(updatedPassenger);
 
-            return getUpdateResponse(updatedPassenger);
+            return getUpdateResponse(savedPassenger);
         } catch (JsonPatchException ex) {
             log.error(ex.getMessage());
             throw new RuntimeException();
@@ -69,7 +82,7 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     @Override
-    public UpdatePassengerResponse updatePassenger(Long id, PassengerDto passengerDto) {
+    public UserUpdateResponse updatePassenger(Long id, PassengerDto passengerDto) {
         Passenger passenger = getById(id);
         passenger.setDetails(passengerDto.getDetails());
         passenger.setGender(passengerDto.getGender());
@@ -85,17 +98,27 @@ public class PassengerServiceImpl implements PassengerService {
         passengerRepository.deleteById(id);
     }
 
-    private static RegisterResponse getRegisterResponse(Passenger passenger) {
-        RegisterResponse registerResponse = new RegisterResponse();
-        registerResponse.setId(passenger.getId());
-        registerResponse.setCode(HttpStatus.CREATED.value());
-        registerResponse.setSuccessful(true);
-        registerResponse.setMessage("User Registration Successful");
-
-        return registerResponse;
+    @Override
+    public void deleteAll() {
+        passengerRepository.deleteAll();
     }
-    private static UpdatePassengerResponse getUpdateResponse(Passenger passenger) {
-        UpdatePassengerResponse patch = new UpdatePassengerResponse();
+
+    @Override
+    public List<Passenger> getAll() {
+        return passengerRepository.findAll();
+    }
+
+    private static RegisterResponse getRegisterResponse(Passenger passenger) {
+        return RegisterResponse.builder()
+                .id(passenger.getId())
+                .code(HttpStatus.CREATED.value())
+                .message("User Registration Successful")
+                .isSuccessful(true)
+                .build();
+    }
+
+    private static UserUpdateResponse getUpdateResponse(Passenger passenger) {
+        UserUpdateResponse patch = new UserUpdateResponse();
         patch.setMessage(String.format("Passenger with ID %d updated successfully", passenger.getId()));
 
         return patch;

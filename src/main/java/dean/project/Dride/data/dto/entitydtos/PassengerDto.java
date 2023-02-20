@@ -1,17 +1,15 @@
-package dean.project.Dride.data.dto.request;
+package dean.project.Dride.data.dto.entitydtos;
 
 import dean.project.Dride.data.models.Details;
 import dean.project.Dride.data.models.Gender;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class PassengerDto {
     private Long id;
     private String phoneNumber;

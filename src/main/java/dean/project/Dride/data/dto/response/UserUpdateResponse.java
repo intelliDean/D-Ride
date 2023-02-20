@@ -1,4 +1,4 @@
-package dean.project.Dride.data.dto;
+package dean.project.Dride.data.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UpdatePassengerResponse {
+public class UserUpdateResponse {
     private String message;
 
 }

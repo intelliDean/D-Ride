@@ -8,10 +8,9 @@ import lombok.*;
 @Getter
 @Setter
 @Builder
-public class RegisterPassengerRequest {
-    private String email;
-    @JsonProperty("full_name")
+public class UserRegisterRequest {
+    //@JsonProperty("full_name")  //used to specify the column name of the field name in the db
     private String name;
-
+    private String email;
     private String password;
 }

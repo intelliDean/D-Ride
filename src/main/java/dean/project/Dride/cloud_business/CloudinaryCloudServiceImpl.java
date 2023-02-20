@@ -20,12 +20,14 @@ public class CloudinaryCloudServiceImpl implements  CloudService{
     @Override
     public String upload(MultipartFile image) {
         try {
-            Map<?, ?> response =
-                    cloudinary.uploader().upload(image.getBytes(), ObjectUtils.emptyMap());
+            Map<?, ?> response = cloudinary.uploader().upload(image.getBytes(), ObjectUtils.emptyMap());
             log.info("response::{}", response);
             return response.get("url").toString();
         } catch (IOException e) {
             throw new ImageUploadException(e.getMessage());
+
+            // TODO: 20-Feb-23   david malen byte conversion intro to computer science
         }
     }
 }
+ 

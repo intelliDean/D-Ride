@@ -1,29 +1,27 @@
 package dean.project.Dride.services.passengerServices;
 
 import com.github.fge.jsonpatch.JsonPatch;
-import dean.project.Dride.data.dto.entitydtos.PassengerDto;
 import dean.project.Dride.data.dto.request.UserRegisterRequest;
 import dean.project.Dride.data.dto.response.RegisterResponse;
 import dean.project.Dride.data.dto.response.UserUpdateResponse;
 import dean.project.Dride.data.models.Passenger;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
 
 public interface PassengerService {
     RegisterResponse register(UserRegisterRequest userRegisterRequest);
 
-    Passenger getById(Long userId);
+    Passenger getPassengerById(Long userId);
 
-    Passenger getByName(String name);
+    Passenger getPassengerByName(String name);
 
-    UserUpdateResponse updateField(Long passId, JsonPatch updatePayload);
-
-    UserUpdateResponse updatePassenger(Long id, PassengerDto passengerDto);
+    UserUpdateResponse updatePassengerInfo(Long passId, JsonPatch updatePayload);
 
     void deletePassenger(Long id);
 
-    void deleteAll();
+    void deleteAllPassengers();
 
-    List<Passenger> getAll();
+    Page<Passenger> getAllPassengers(int pageNumber);
+
+    Passenger savePassenger(Passenger passenger);
 
 }

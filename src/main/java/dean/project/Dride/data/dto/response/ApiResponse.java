@@ -1,13 +1,14 @@
 package dean.project.Dride.data.dto.response;
 
+
 import lombok.*;
 
-@Setter
-@Getter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class UserUpdateResponse {
+@Getter
+@Setter
+public class ApiResponse {
+    private int status;
     private String message;
-
 }

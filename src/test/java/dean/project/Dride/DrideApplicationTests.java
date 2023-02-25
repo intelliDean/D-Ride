@@ -14,6 +14,6 @@ class DrideApplicationTests {
     }
 	@Test
 	void testThatWeConnectWithDatabase() {
-		DriverManagerDataSource dataSource = new DriverManagerDataSource("");
+		DriverManagerDataSource dataSource = new DriverManagerDataSource("jdbc:mysql://localhost:3306", "root", "@Tiptop2059!");
 	}
 }

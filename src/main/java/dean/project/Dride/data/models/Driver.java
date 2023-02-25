@@ -24,6 +24,7 @@ public class Driver {
     private String licenseImage;
     private String licenseId;
     private int age;
+    @Enumerated(value = EnumType.STRING)
     private Gender gender;
     @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private BankInformation bankInformation;

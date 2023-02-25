@@ -1,15 +1,17 @@
 package dean.project.Dride.data.dto.request;
 
-import lombok.*;
 
-@NoArgsConstructor
+import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
+
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
 @Builder
-public class UserRegisterRequest {
-    //@JsonProperty("full_name")  //used to specify the column name of the field name in the db
+public class RegisterDriverRequest {
     private String name;
     private String email;
     private String password;
+    //private MultipartFile licenseImage;
 }

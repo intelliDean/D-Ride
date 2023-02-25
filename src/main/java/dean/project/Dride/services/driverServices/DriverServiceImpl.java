@@ -1,20 +1,17 @@
 package dean.project.Dride.services.driverServices;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.fge.jsonpatch.JsonPatch;
-import com.github.fge.jsonpatch.JsonPatchException;
 import dean.project.Dride.cloud_business.CloudService;
-import dean.project.Dride.data.dto.entitydtos.DriverDto;
+import dean.project.Dride.data.dto.request.EmailNotificationRequest;
+import dean.project.Dride.data.dto.request.Recipient;
 import dean.project.Dride.data.dto.request.UserRegisterRequest;
 import dean.project.Dride.data.dto.response.RegisterResponse;
-import dean.project.Dride.data.dto.response.UserUpdateResponse;
 import dean.project.Dride.data.models.Details;
 import dean.project.Dride.data.models.Driver;
 import dean.project.Dride.data.repositories.DriverRepository;
-import dean.project.Dride.dride_mappers.DrideMappers;
 import dean.project.Dride.exceptions.ImageUploadException;
 import dean.project.Dride.exceptions.UserNotFoundException;
+import dean.project.Dride.notification.MailService;
+import dean.project.Dride.utilities.DrideUtilities;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -23,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Slf4j
 @AllArgsConstructor
@@ -32,6 +28,7 @@ public class DriverServiceImpl implements DriverService {
     private final DriverRepository driverRepository;
     private final CloudService cloudService;
     private final ModelMapper modelMapper;
+    private final MailService mailService;
 
     @Override
     public RegisterResponse register(UserRegisterRequest userRegisterRequest, MultipartFile licenseImage) {
@@ -42,7 +39,7 @@ public class DriverServiceImpl implements DriverService {
         //1. upload drivers license image
         var imageUrl = cloudService.upload(licenseImage);
         if (imageUrl == null) {
-            throw new ImageUploadException("Driver registration failed because license could not be uploaded. Try gain");
+            throw new ImageUploadException("Driver Registration failed. Upload license and try again");
         }
         //2. create driver object
         Driver driver = Driver.builder()
@@ -51,6 +48,15 @@ public class DriverServiceImpl implements DriverService {
                 .build();
         //3. save driver
         Driver savedDriver = driverRepository.save(driver);
+        //4. send verification mail to driver
+        EmailNotificationRequest request = buildNotificationRequest(
+                savedDriver.getDetails().getEmail(),
+                savedDriver.getDetails().getName(),
+                savedDriver.getId());
+        String response = mailService.sendHtmlMail(request);
+
+        if (response == null) return failureResponse();
+
         return RegisterResponse.builder()
                 .code(HttpStatus.CREATED.value())
                 .id(savedDriver.getId())
@@ -59,76 +65,32 @@ public class DriverServiceImpl implements DriverService {
                 .build();
     }
 
+    @Override
+    public Driver getDriverById(Long driverId) {
+        return driverRepository.findById(driverId)
+                .orElseThrow(()-> new UserNotFoundException("Driver could not be found"));
+    }
 
+    @Override
+    public Driver savedriver(Driver driver) {
+        return driverRepository.save(driver);
+    }
 
-//    @Override
-//    public DriverDto getById(Long id) {
-//        Driver driver = driverRepository.findById(id).orElseThrow(
-//                ()->new UserNotFoundException("Driver not found"));
-//        return DrideMappers.maptoDriverDto(driver);
-//    }
+    private static RegisterResponse failureResponse() {
+            return RegisterResponse.builder()
+                    .code(HttpStatus.BAD_REQUEST.value())
+                    .id(-1L)
+                    .isSuccessful(false)
+                    .message("Driver Registration Failed")
+                    .build();
+        }
 
-//    @Override
-//    public List<DriverDto> getAllDriver() {
-//        return null;
-//    }
-
-
-//    @Override
-//    public UserUpdateResponse patchUpdate(Long driverId, JsonPatch updatePayload) {
-//        ObjectMapper mapper = new ObjectMapper();
-//        DriverDto driverDto = getById(driverId);
-//        JsonNode node = mapper.convertValue(driverDto, JsonNode.class);
-//
-//        try {
-//            JsonNode updatedNode = updatePayload.apply(node);
-//            var updatedDriverDto = mapper.convertValue(updatedNode, DriverDto.class);
-//            Driver driver = DrideMappers.mapToDriverEntity(updatedDriverDto);
-//            var returnedDriver = driverRepository.save(driver);
-//
-//            return getUpdateResponse(returnedDriver);
-//        } catch (JsonPatchException ex) {
-//            log.error(ex.getMessage());
-//            throw new RuntimeException();
-//        }
-//    }
-
-//    @Override
-//    public UserUpdateResponse updateDriver(Long id, DriverDto passengerDto) {
-//        return null;
-//    }
-//
-//    private static UserUpdateResponse getUpdateResponse(Driver driver) {
-//        UserUpdateResponse patch = new UserUpdateResponse();
-//        patch.setMessage(String.format("Passenger with ID %d updated successfully", driver.getId()));
-//
-//        return patch;
-//    }
-//
-//    //@Override
-//    public UserUpdateResponse updatePassenger(Long id, DriverDto driverDto) {
-//        DriverDto returnedDriverDto = getById(id);
-//
-//        returnedDriverDto = DrideMappers.
-//
-//        re.s
-//        driverDto.setDetails(passengerDto.getDetails());
-//        passenger.setGender(passengerDto.getGender());
-//        passenger.setPhoneNumber(passengerDto.getPhoneNumber());
-//
-//        Passenger returnedPassenger = passengerRepository.save(passenger);
-//
-//        return getUpdateResponse(returnedPassenger);
-//        return null;
-//    }
-//
-//    @Override
-//    public void deleteById(Long id) {
-//
-//    }
-//
-//    @Override
-//    public void deleteAll() {
-//
-//    }
+    private EmailNotificationRequest buildNotificationRequest(String email, String name, Long userId) {
+        EmailNotificationRequest request = new EmailNotificationRequest();
+        request.getTo().add(new Recipient(name, email));
+        String template = DrideUtilities.getMailTemplate();
+        String content = String.format(template, name, DrideUtilities.generateVerificationLink(userId));
+        request.setHtmlContent(content);
+        return request;
+    }
 }

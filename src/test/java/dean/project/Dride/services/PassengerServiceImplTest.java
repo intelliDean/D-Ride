@@ -43,7 +43,7 @@ class PassengerServiceImplTest {
     @Test
     void getUser(){
         var registerResponse = passengerService.register(request);
-        Passenger p = passengerService.getById(registerResponse.getId());
+        Passenger p = passengerService.getPassengerById(registerResponse.getId());
         assertThat(p).isNotNull();
         Details d = p.getDetails();
         assertThat(d.getName()).isEqualTo(request.getName());

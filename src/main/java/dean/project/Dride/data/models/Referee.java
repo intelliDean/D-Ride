@@ -19,13 +19,13 @@ public class Referee {
     private Long id;
     private String firstName;
     private String lastName;
+    private int age;
+    private String phoneNumber;
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
+    @OneToOne
+    private Address address;
     private String occupation;
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<Driver> driver;
-    private int age;
-    @OneToOne
-    private Address address;
-    @Enumerated(EnumType.STRING)
-    private Gender gender;
-    private String phoneNumber;
 }

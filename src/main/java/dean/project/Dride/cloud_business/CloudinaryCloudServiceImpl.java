@@ -30,4 +30,3 @@ public class CloudinaryCloudServiceImpl implements  CloudService{
         }
     }
 }
- 

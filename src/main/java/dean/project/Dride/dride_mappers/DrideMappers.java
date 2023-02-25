@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 
 public class DrideMappers {
     public static Details mapToDetails(UserRegisterRequest request) {
-//        Details details = new Details();
+//        DetailsRepository details = new DetailsRepository();
         return Details.builder()
                 .name(request.getName())
                 .password(request.getPassword())

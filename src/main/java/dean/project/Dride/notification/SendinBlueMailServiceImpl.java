@@ -28,7 +28,7 @@ public class SendinBlueMailServiceImpl implements MailService {
         HttpEntity<EmailNotificationRequest> requestHttpEntity = new HttpEntity<>(request, httpHeaders);
         ResponseEntity<String> response = restTemplate.postForEntity(mailConfig.getMailUrl(), requestHttpEntity, String.class);
 
-        log.info("res -> {}", response);
+        //log.info("res -> {}", response);
         return response.getBody();
     }
 }

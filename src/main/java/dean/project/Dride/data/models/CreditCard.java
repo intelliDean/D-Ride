@@ -19,8 +19,8 @@ public class CreditCard {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String cardNumber;
+    private int cvv;
     @ManyToOne
     private Passenger passenger;
-    private int cvv;
     private LocalDate expiryDate;
 }

@@ -8,6 +8,7 @@ import dean.project.Dride.data.models.Passenger;
 import dean.project.Dride.services.passengerServices.PassengerService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +31,7 @@ public class PassengerController {
 
     @GetMapping("{passengerId}")
     public ResponseEntity<?> getPassengerById(@PathVariable Long passengerId) {
-        Passenger passenger = passengerService.getById(passengerId);
+        Passenger passenger = passengerService.getPassengerById(passengerId);
 
         PassengerDto passengerDto = modelMapper.map(passenger, PassengerDto.class);
 
@@ -38,7 +39,7 @@ public class PassengerController {
     }
     @GetMapping("{name}")
     public ResponseEntity<?> getPassengerByName(@PathVariable String name) {
-        Passenger passenger = passengerService.getByName(name);
+        Passenger passenger = passengerService.getPassengerByName(name);
 
         PassengerDto passengerDto = modelMapper.map(passenger, PassengerDto.class);
 
@@ -48,7 +49,7 @@ public class PassengerController {
     @PatchMapping(value = "{passengerId}", consumes = "application/json-patch+json")
     public ResponseEntity<?> updatePassengerField(@PathVariable Long passengerId, @RequestBody JsonPatch updatePatch) {
         try {
-            var response = passengerService.updateField(passengerId, updatePatch);
+            var response = passengerService.updatePassengerInfo(passengerId, updatePatch);
             return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (Exception ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
@@ -65,14 +66,14 @@ public class PassengerController {
 
     @DeleteMapping("deleteAll")
     public ResponseEntity<?> deleteAllPassengers() {
-        passengerService.deleteAll();
+        passengerService.deleteAllPassengers();
 
         return ResponseEntity.status(HttpStatus.OK).body("All Passengers deleted successfully");
     }
 
-    @GetMapping("/getAll")
-    public ResponseEntity<List<?>> getAllPassengers() {
-        return ResponseEntity.status(HttpStatus.OK).body(passengerService.getAll());
+    @GetMapping("/getAll/{pageNumber}")
+    public ResponseEntity<Page<?>> getAllPassengers(@PathVariable int pageNumber) {
+        return ResponseEntity.status(HttpStatus.OK).body(passengerService.getAllPassengers(pageNumber));
     }
 
 

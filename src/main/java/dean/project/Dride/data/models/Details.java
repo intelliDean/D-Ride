@@ -19,7 +19,7 @@ public class Details {
     private String name;
     private String password;
     private String email;
-    @Transient
-    private MultipartFile profileImage;
+    private String profileImage;
     private String registeredAt;
+    private Boolean isEnabled;
 }

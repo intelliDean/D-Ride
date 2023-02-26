@@ -7,10 +7,13 @@ import dean.project.Dride.data.dto.response.UserUpdateResponse;
 import dean.project.Dride.data.models.Passenger;
 import org.springframework.data.domain.Page;
 
+import java.util.Optional;
+
 public interface PassengerService {
     RegisterResponse register(UserRegisterRequest userRegisterRequest);
 
-    Passenger getPassengerById(Long userId);
+    Passenger getPassengerById(Long passengerId);
+    Optional<Passenger> getPassengerOp(Long passengerId);
 
     Passenger getPassengerByName(String name);
 
@@ -23,5 +26,6 @@ public interface PassengerService {
     Page<Passenger> getAllPassengers(int pageNumber);
 
     Passenger savePassenger(Passenger passenger);
+
 
 }

@@ -1,0 +1,11 @@
+<!Doctype html>
+<html>
+    <body>
+        <p>Hi %s,
+            We say THANK YOU for choosing Dride, where we take you to your dream.
+            Fasten your seat bet, sit tight and enjoy every it of it because it going to be a harmonious ride.
+            Please click 'activate' below to activate your account.<br/>
+            <a href="%s"> Activate </a>
+        </p>
+    </body>
+</html>

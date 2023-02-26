@@ -1,16 +1,14 @@
 package dean.project.Dride.data.models;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
+@Builder
 public class Admin {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

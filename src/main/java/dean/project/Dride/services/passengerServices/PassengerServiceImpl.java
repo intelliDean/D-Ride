@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static dean.project.Dride.utilities.DrideUtilities.NUMBER_OF_ITEMS_PER_PAGE;
 
@@ -67,6 +68,11 @@ public class PassengerServiceImpl implements PassengerService {
         return passengerRepository.findById(passengerId)
                 .orElseThrow(()->new UserNotFoundException(String
                         .format("Passenger with ID %d not found", passengerId)));
+    }
+
+    @Override
+    public Optional<Passenger> getPassengerOp(Long passengerId) {
+        return passengerRepository.findById(passengerId);
     }
 
     @Override

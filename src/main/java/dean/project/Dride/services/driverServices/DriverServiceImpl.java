@@ -72,7 +72,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public Driver savedriver(Driver driver) {
+    public Driver saveDriver(Driver driver) {
         return driverRepository.save(driver);
     }
 

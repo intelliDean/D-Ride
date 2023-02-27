@@ -3,7 +3,7 @@ package dean.project.Dride.services.driverServices;
 import dean.project.Dride.cloud_business.CloudService;
 import dean.project.Dride.data.dto.request.EmailNotificationRequest;
 import dean.project.Dride.data.dto.request.Recipient;
-import dean.project.Dride.data.dto.request.UserRegisterRequest;
+import dean.project.Dride.data.dto.request.RegisterDriverRequest;
 import dean.project.Dride.data.dto.response.RegisterResponse;
 import dean.project.Dride.data.models.Details;
 import dean.project.Dride.data.models.Driver;
@@ -17,9 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Slf4j
 @AllArgsConstructor
@@ -31,13 +31,13 @@ public class DriverServiceImpl implements DriverService {
     private final MailService mailService;
 
     @Override
-    public RegisterResponse register(UserRegisterRequest userRegisterRequest, MultipartFile licenseImage) {
-        Details details = modelMapper.map(userRegisterRequest, Details.class);
+    public RegisterResponse register(RegisterDriverRequest registerDriverRequest) {
+        Details details = modelMapper.map(registerDriverRequest, Details.class);
         details.setRegisteredAt(LocalDateTime.now().toString());
 
         //steps
         //1. upload drivers license image
-        var imageUrl = cloudService.upload(licenseImage);
+        var imageUrl = cloudService.upload(registerDriverRequest.getLicenseImage());
         if (imageUrl == null) {
             throw new ImageUploadException("Driver Registration failed. Upload license and try again");
         }
@@ -49,13 +49,15 @@ public class DriverServiceImpl implements DriverService {
         //3. save driver
         Driver savedDriver = driverRepository.save(driver);
         //4. send verification mail to driver
-        EmailNotificationRequest request = buildNotificationRequest(
+        EmailNotificationRequest request = mailNotificationRequest(
                 savedDriver.getDetails().getEmail(),
                 savedDriver.getDetails().getName(),
                 savedDriver.getId());
         String response = mailService.sendHtmlMail(request);
 
-        if (response == null) return failureResponse();
+        if (response == null) {
+            return failureResponse();
+        }
 
         return RegisterResponse.builder()
                 .code(HttpStatus.CREATED.value())
@@ -68,24 +70,29 @@ public class DriverServiceImpl implements DriverService {
     @Override
     public Driver getDriverById(Long driverId) {
         return driverRepository.findById(driverId)
-                .orElseThrow(()-> new UserNotFoundException("Driver could not be found"));
+                .orElseThrow(()->new UserNotFoundException("Driver could not be found"));
     }
 
     @Override
-    public Driver saveDriver(Driver driver) {
-        return driverRepository.save(driver);
+    public void saveDriver(Driver driver) {
+        driverRepository.save(driver);
+    }
+
+    @Override
+    public Optional<Driver> getDriverOp(Long driverId) {
+        return driverRepository.findById(driverId);
     }
 
     private static RegisterResponse failureResponse() {
-            return RegisterResponse.builder()
-                    .code(HttpStatus.BAD_REQUEST.value())
-                    .id(-1L)
-                    .isSuccessful(false)
-                    .message("Driver Registration Failed")
-                    .build();
-        }
+        return RegisterResponse.builder()
+                .code(HttpStatus.BAD_REQUEST.value())
+                .id(-1L)
+                .isSuccessful(false)
+                .message("Driver Registration Failed")
+                .build();
+    }
 
-    private EmailNotificationRequest buildNotificationRequest(String email, String name, Long userId) {
+    private EmailNotificationRequest mailNotificationRequest(String email, String name, Long userId) {
         EmailNotificationRequest request = new EmailNotificationRequest();
         request.getTo().add(new Recipient(name, email));
         String template = DrideUtilities.getMailTemplate();

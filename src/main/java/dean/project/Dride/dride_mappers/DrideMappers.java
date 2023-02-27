@@ -1,10 +1,8 @@
 package dean.project.Dride.dride_mappers;
 
-import dean.project.Dride.data.dto.entitydtos.DriverDto;
 import dean.project.Dride.data.dto.entitydtos.PassengerDto;
 import dean.project.Dride.data.dto.request.UserRegisterRequest;
 import dean.project.Dride.data.models.Details;
-import dean.project.Dride.data.models.Driver;
 import dean.project.Dride.data.models.Passenger;
 
 import java.time.LocalDateTime;

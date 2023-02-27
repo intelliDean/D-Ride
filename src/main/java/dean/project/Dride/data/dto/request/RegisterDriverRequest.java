@@ -13,5 +13,5 @@ public class RegisterDriverRequest {
     private String name;
     private String email;
     private String password;
-    //private MultipartFile licenseImage;
+    private MultipartFile licenseImage;
 }

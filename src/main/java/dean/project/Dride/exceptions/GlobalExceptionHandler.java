@@ -20,7 +20,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(error.getStatusCode()).body(error);
     }
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<?> handleVoterzException(UserNotFoundException ex, WebRequest webRequest) {
+    public ResponseEntity<?> handleUserNotFoundException(UserNotFoundException ex, WebRequest webRequest) {
         ErrorResponse error = ErrorResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())

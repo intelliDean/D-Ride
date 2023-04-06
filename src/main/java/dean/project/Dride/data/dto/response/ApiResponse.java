@@ -1,14 +1,20 @@
 package dean.project.Dride.data.dto.response;
 
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
+
+import java.math.BigDecimal;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Getter
 @Setter
-public class ApiResponse {
-    private int status;
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@ToString
+public class ApiResponse{
     private String message;
+    private BigDecimal fare;
+    private String estimatedTimeOfArrival;
 }

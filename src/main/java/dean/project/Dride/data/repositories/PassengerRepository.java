@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface PassengerRepository extends JpaRepository<Passenger, Long> {
-    Optional<Passenger> findPassengerByDetailsName(String name);
+    Optional<Passenger> findPassengerByUsers_Name(String userName);
 
 }

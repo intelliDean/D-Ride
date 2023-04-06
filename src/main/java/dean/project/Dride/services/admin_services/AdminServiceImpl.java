@@ -5,13 +5,13 @@ import dean.project.Dride.data.dto.request.InviteAdminRequest;
 import dean.project.Dride.data.dto.request.Recipient;
 import dean.project.Dride.data.dto.response.ApiResponse;
 import dean.project.Dride.data.models.Admin;
+import dean.project.Dride.data.models.Users;
 import dean.project.Dride.data.repositories.AdminRepository;
 import dean.project.Dride.exceptions.DrideException;
 import dean.project.Dride.notification.MailService;
 import dean.project.Dride.utilities.DrideUtilities;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,16 +29,16 @@ public class AdminServiceImpl implements AdminService {
         EmailNotificationRequest request = new EmailNotificationRequest();
         List<Recipient> recipients = inviteAdminRequest.stream()
                 .map(adminRequest -> createAdminProfile(adminRequest))      //initialise the admin entity
-                .map(adminEntity -> new Recipient(adminEntity.getDetails().getName(), adminEntity.getDetails().getEmail())).toList();       //initialise the new recipient entity
+                .map(adminEntity -> new Recipient(adminEntity.getUsers().getName(), adminEntity.getUsers().getEmail()))
+                .toList();       //initialise the new recipient entity
         request.getTo().addAll(recipients);
 
         String adminMail = DrideUtilities.getAdminMailTemplate();
-        request.setHtmlContent(String.format(adminMail,"Admin", DrideUtilities.getAdminMailTemplate()));
-        String response = mailService.sendHtmlMail(request);
+        request.setHtmlContent(String.format(adminMail, "admin", DrideUtilities.generateVerificationLink(0L)));
+        var response = mailService.sendHtmlMail(request);
         if (response != null) {
             ApiResponse.builder()
                     .message("Admin Invitation Mail sent successfully")
-                    .status(HttpStatus.OK.value())
                     .build();
         }
         throw new DrideException("Admin Invitation Mail sending failed");
@@ -47,9 +47,11 @@ public class AdminServiceImpl implements AdminService {
 
     private Admin createAdminProfile(InviteAdminRequest inviteAdmin) {
         Admin admin = new Admin();
-        admin.getDetails().setName(inviteAdmin.getName());
-        admin.getDetails().setEmail(inviteAdmin.getEmail());
-        //mapped inviteAdminRequest to Admin model and save in the db
+        admin.setUsers(new Users());
+
+        admin.getUsers().setName(inviteAdmin.getName());
+        admin.getUsers().setEmail(inviteAdmin.getEmail());
+
         return adminRepository.save(admin);
     }
 }

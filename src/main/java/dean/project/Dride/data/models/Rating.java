@@ -1,6 +1,10 @@
 package dean.project.Dride.data.models;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
+@AllArgsConstructor
+@Getter
 public enum Rating {
     BAD(1),
     FAIR(2),
@@ -9,13 +13,4 @@ public enum Rating {
     EXCELLENT(5);
 
     private final int rating;
-
-    Rating(int rating) {
-        this.rating = rating;
-    }
-
-    public int getRating() {
-        return rating;
-    }
-
 }

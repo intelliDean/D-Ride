@@ -1,31 +1,21 @@
 package dean.project.Dride.dride_mappers;
 
-import dean.project.Dride.data.dto.entitydtos.PassengerDto;
-import dean.project.Dride.data.dto.request.UserRegisterRequest;
-import dean.project.Dride.data.models.Details;
-import dean.project.Dride.data.models.Passenger;
+import dean.project.Dride.data.dto.request.RegisterPassengerRequest;
+import dean.project.Dride.data.models.Users;
 
 import java.time.LocalDateTime;
 
 public class DrideMappers {
-    public static Details mapToDetails(UserRegisterRequest request) {
-//        DetailsRepository details = new DetailsRepository();
-        return Details.builder()
+    public static Users mapToDetails(RegisterPassengerRequest request) {
+//        UserRepository users = new UserRepository();
+        return Users.builder()
                 .name(request.getName())
                 .password(request.getPassword())
                 .email(request.getEmail())
-                .registeredAt(LocalDateTime.now().toString())
+                .createdAt(LocalDateTime.now().toString())
                 .build();
     }
 
-    public static PassengerDto mapPassengerToDto(Passenger passenger) {
-        return PassengerDto.builder()
-                .id(passenger.getId())
-                .details(passenger.getDetails())
-                .gender(passenger.getGender())
-                .phoneNumber(passenger.getPhoneNumber())
-                .build();
-    }
 
 
 

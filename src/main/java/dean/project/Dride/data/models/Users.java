@@ -3,7 +3,8 @@ package dean.project.Dride.data.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Set;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -11,15 +12,18 @@ import org.springframework.web.multipart.MultipartFile;
 @Setter
 @Entity
 @Builder
-public class Details {
+public class Users {
     @JsonIgnore // it will not be rendered
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;        //an entity in the database needs a primary key i.e id
     private String name;
     private String password;
+    @Column(unique = true)
     private String email;
     private String profileImage;
-    private String registeredAt;
+    @Enumerated(EnumType.STRING)
+    private Set<Role> roles;
+    private String createdAt;
     private Boolean isEnabled;
 }

@@ -1,4 +1,4 @@
-package dean.project.Dride.config;
+package dean.project.Dride.config.mail;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

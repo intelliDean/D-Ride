@@ -1,6 +1,6 @@
 package dean.project.Dride.notification;
 
-import dean.project.Dride.config.MailConfig;
+import dean.project.Dride.config.mail.MailConfig;
 import dean.project.Dride.data.dto.request.EmailNotificationRequest;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,14 +21,14 @@ public class SendinBlueMailServiceImpl implements MailService {
     @Override
     public String sendHtmlMail(EmailNotificationRequest request) {
         RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-        httpHeaders.set("api-key", mailConfig.getApiKey());
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("api-key", mailConfig.getApiKey());
+        HttpEntity<EmailNotificationRequest> requestEntity = new HttpEntity<>(request, headers);
 
-        HttpEntity<EmailNotificationRequest> requestHttpEntity = new HttpEntity<>(request, httpHeaders);
-        ResponseEntity<String> response = restTemplate.postForEntity(mailConfig.getMailUrl(), requestHttpEntity, String.class);
-
-        //log.info("res -> {}", response);
+        ResponseEntity<String> response =
+                restTemplate.postForEntity(mailConfig.getMailUrl(), requestEntity, String.class);
+        log.info("res->{}", response);
         return response.getBody();
     }
 }

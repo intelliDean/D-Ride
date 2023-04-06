@@ -1,8 +1,7 @@
 package dean.project.Dride.controller;
 
 import com.github.fge.jsonpatch.JsonPatch;
-import dean.project.Dride.data.dto.entitydtos.PassengerDto;
-import dean.project.Dride.data.dto.request.UserRegisterRequest;
+import dean.project.Dride.data.dto.request.RegisterPassengerRequest;
 import dean.project.Dride.data.dto.response.RegisterResponse;
 import dean.project.Dride.data.models.Passenger;
 import dean.project.Dride.services.passengerServices.PassengerService;
@@ -13,8 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @AllArgsConstructor
 @RestController
 @RequestMapping("/api/v1/passenger")
@@ -24,26 +21,21 @@ public class PassengerController {
 
 
     @PostMapping("register")
-    public ResponseEntity<?> registerPassenger(@RequestBody UserRegisterRequest userRegisterRequest) {
-        RegisterResponse registerResponse = passengerService.register(userRegisterRequest);
-        return ResponseEntity.status(registerResponse.getCode()).body(registerResponse);
+    public ResponseEntity<?> registerPassenger(@RequestBody RegisterPassengerRequest registerPassengerRequest) {
+        RegisterResponse registerResponse = passengerService.register(registerPassengerRequest);
+        return ResponseEntity.ok(registerResponse);
     }
 
     @GetMapping("{passengerId}")
     public ResponseEntity<?> getPassengerById(@PathVariable Long passengerId) {
         Passenger passenger = passengerService.getPassengerById(passengerId);
-
-        PassengerDto passengerDto = modelMapper.map(passenger, PassengerDto.class);
-
-        return ResponseEntity.status(HttpStatus.OK).body(passengerDto);
+        return ResponseEntity.status(HttpStatus.OK).body(passenger);
     }
     @GetMapping("{name}")
     public ResponseEntity<?> getPassengerByName(@PathVariable String name) {
         Passenger passenger = passengerService.getPassengerByName(name);
 
-        PassengerDto passengerDto = modelMapper.map(passenger, PassengerDto.class);
-
-        return ResponseEntity.status(HttpStatus.OK).body(passengerDto);
+        return ResponseEntity.status(HttpStatus.OK).body(passenger);
     }
 
     @PatchMapping(value = "{passengerId}", consumes = "application/json-patch+json")

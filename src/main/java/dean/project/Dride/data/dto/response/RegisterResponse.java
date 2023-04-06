@@ -4,12 +4,11 @@ import lombok.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Setter
 @Getter
+@Setter
 @Builder
 public class RegisterResponse {
     private Long id;
     private String message;
-    private int code;
-    private boolean isSuccessful;
+    private boolean isSuccess;
 }

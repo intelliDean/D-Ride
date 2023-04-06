@@ -24,7 +24,6 @@ public class UserController {
         } catch (DrideException ex) {
             return ResponseEntity.badRequest().body(
                             ApiResponse.builder()
-                                    .status(HttpStatus.BAD_REQUEST.value())
                                     .message(ex.getMessage())
                                     .build());
         }
@@ -37,7 +36,6 @@ public class UserController {
         } catch (DrideException ex) {
             return ResponseEntity.badRequest().body(
                     ApiResponse.builder()
-                            .status(HttpStatus.BAD_REQUEST.value())
                             .message(ex.getMessage())
                             .build());
         }

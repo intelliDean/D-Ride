@@ -1,9 +1,11 @@
 package dean.project.Dride.services.user_services;
 
-import dean.project.Dride.cloud_business.CloudService;
+import dean.project.Dride.services.cloud_business.CloudService;
 import dean.project.Dride.data.dto.response.ApiResponse;
+import dean.project.Dride.data.models.Users;
 import dean.project.Dride.data.models.Driver;
 import dean.project.Dride.data.models.Passenger;
+import dean.project.Dride.data.repositories.UserRepository;
 import dean.project.Dride.exceptions.DrideException;
 import dean.project.Dride.exceptions.UserNotFoundException;
 import dean.project.Dride.services.driverServices.DriverService;
@@ -11,7 +13,6 @@ import dean.project.Dride.services.passengerServices.PassengerService;
 import dean.project.Dride.utilities.DrideUtilities;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,6 +25,8 @@ public class UserServiceImpl implements UserService {
     private final PassengerService passengerService;
     private final DriverService driverService;
     private final CloudService cloudService;
+    private final UserRepository userRepository;
+
 
     @Override
     public ApiResponse uploadProfileImage(Long userId, MultipartFile profileImage) {
@@ -43,18 +46,17 @@ public class UserServiceImpl implements UserService {
         foundDriver.ifPresent(driver -> saveDriverProfileImage(driver, imageUrl));
 
         return ApiResponse.builder()
-                .status(HttpStatus.OK.value())
                 .message("Upload successful")
                 .build();
     }
 
     private void saveDriverProfileImage(Driver driver, String imageUrl) {
-        driver.getDetails().setProfileImage(imageUrl);
+        driver.getUsers().setProfileImage(imageUrl);
         driverService.saveDriver(driver);
     }
 
     private void savePassengerProfileImage(Passenger passenger, String imageUrl) {
-        passenger.getDetails().setProfileImage(imageUrl);
+        passenger.getUsers().setProfileImage(imageUrl);
         passengerService.savePassenger(passenger);
     }
 
@@ -73,6 +75,12 @@ public class UserServiceImpl implements UserService {
         throw new DrideException(String.format("Account Verification of User %d Failed", userId));
     }
 
+    @Override
+    public Users getByEmail(String email) {
+        return userRepository.findDetailsByEmail(email)
+                .orElseThrow(()-> new UserNotFoundException("User could not be found"));
+    }
+
     private ApiResponse verificationResponse(Long userId) {
         Optional<Passenger> foundPassenger;
         Optional<Driver> foundDriver = Optional.empty();
@@ -84,22 +92,21 @@ public class UserServiceImpl implements UserService {
         if (foundPassenger.isEmpty() && foundDriver.isEmpty()) {
             throw new UserNotFoundException(String.format("User with ID %d could not be found", userId));
         }
-        foundDriver.ifPresent(driver -> enableDriverAccount(driver));
-        foundPassenger.ifPresent(passenger -> enablePassengerAccount(passenger));
+        foundDriver.ifPresent(this :: enableDriverAccount);
+        foundPassenger.ifPresent(this :: enablePassengerAccount);
 
         return ApiResponse.builder()
-                .status(HttpStatus.OK.value())
                 .message(String.format("User with ID %d enabled", userId))
                 .build();
     }
 
     private void enablePassengerAccount(Passenger passenger) {
-        passenger.getDetails().setIsEnabled(true);
+        passenger.getUsers().setIsEnabled(true);
         passengerService.savePassenger(passenger);
     }
 
     private void enableDriverAccount(Driver driver) {
-        driver.getDetails().setIsEnabled(true);
+        driver.getUsers().setIsEnabled(true);
         driverService.saveDriver(driver);
     }
 }

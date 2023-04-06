@@ -7,7 +7,6 @@ import dean.project.Dride.data.dto.response.RegisterResponse;
 import dean.project.Dride.exceptions.DrideException;
 import dean.project.Dride.services.driverServices.DriverService;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -29,7 +28,6 @@ public class DriverController {
         } catch (DrideException ex) {
             return ResponseEntity.badRequest()
                     .body(ApiResponse.builder()
-                            .status(HttpStatus.BAD_REQUEST.value())
                             .message(ex.getMessage())
                             .build());
         }

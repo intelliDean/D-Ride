@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import org.springframework.web.multipart.MultipartFile;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,7 +16,7 @@ public class Driver {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String phoneNumber;
-    @OneToOne
+    @OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private Address address;
 //    @Transient used to be MultipartFile
     private String profileImage;
@@ -32,5 +31,5 @@ public class Driver {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Referee referee;
     @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    private Details details;
+    private Users users;
 }

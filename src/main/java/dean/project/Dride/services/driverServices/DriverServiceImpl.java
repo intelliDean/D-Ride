@@ -1,11 +1,11 @@
 package dean.project.Dride.services.driverServices;
 
-import dean.project.Dride.cloud_business.CloudService;
+import dean.project.Dride.services.cloud_business.CloudService;
 import dean.project.Dride.data.dto.request.EmailNotificationRequest;
 import dean.project.Dride.data.dto.request.Recipient;
 import dean.project.Dride.data.dto.request.RegisterDriverRequest;
 import dean.project.Dride.data.dto.response.RegisterResponse;
-import dean.project.Dride.data.models.Details;
+import dean.project.Dride.data.models.Users;
 import dean.project.Dride.data.models.Driver;
 import dean.project.Dride.data.repositories.DriverRepository;
 import dean.project.Dride.exceptions.ImageUploadException;
@@ -15,11 +15,14 @@ import dean.project.Dride.utilities.DrideUtilities;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Optional;
+
+import static dean.project.Dride.data.models.Role.DRIVER;
 
 @Slf4j
 @AllArgsConstructor
@@ -28,12 +31,17 @@ public class DriverServiceImpl implements DriverService {
     private final DriverRepository driverRepository;
     private final CloudService cloudService;
     private final ModelMapper modelMapper;
+
     private final MailService mailService;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public RegisterResponse register(RegisterDriverRequest registerDriverRequest) {
-        Details details = modelMapper.map(registerDriverRequest, Details.class);
-        details.setRegisteredAt(LocalDateTime.now().toString());
+        Users driverDetails = modelMapper.map(registerDriverRequest, Users.class);
+        driverDetails.setCreatedAt(LocalDateTime.now().toString());
+        driverDetails.setPassword(passwordEncoder.encode(registerDriverRequest.getPassword()));
+        driverDetails.setRoles(new HashSet<>());
+        driverDetails.getRoles().add(DRIVER);
 
         //steps
         //1. upload drivers license image
@@ -43,15 +51,15 @@ public class DriverServiceImpl implements DriverService {
         }
         //2. create driver object
         Driver driver = Driver.builder()
-                .details(details)
+                .users(driverDetails)
                 .licenseImage(imageUrl)
                 .build();
         //3. save driver
         Driver savedDriver = driverRepository.save(driver);
         //4. send verification mail to driver
         EmailNotificationRequest request = mailNotificationRequest(
-                savedDriver.getDetails().getEmail(),
-                savedDriver.getDetails().getName(),
+                savedDriver.getUsers().getEmail(),
+                savedDriver.getUsers().getName(),
                 savedDriver.getId());
         String response = mailService.sendHtmlMail(request);
 
@@ -60,9 +68,8 @@ public class DriverServiceImpl implements DriverService {
         }
 
         return RegisterResponse.builder()
-                .code(HttpStatus.CREATED.value())
                 .id(savedDriver.getId())
-                .isSuccessful(true)
+                .isSuccess(true)
                 .message("Driver Registration Successful")
                 .build();
     }
@@ -83,11 +90,15 @@ public class DriverServiceImpl implements DriverService {
         return driverRepository.findById(driverId);
     }
 
+    @Override
+    public Optional<Driver> getDriverBy(Long driverId) {
+        return driverRepository.findById(driverId);
+    }
+
     private static RegisterResponse failureResponse() {
         return RegisterResponse.builder()
-                .code(HttpStatus.BAD_REQUEST.value())
                 .id(-1L)
-                .isSuccessful(false)
+                .isSuccess(false)
                 .message("Driver Registration Failed")
                 .build();
     }

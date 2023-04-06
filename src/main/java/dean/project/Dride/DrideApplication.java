@@ -8,7 +8,5 @@ public class DrideApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(DrideApplication.class, args);
-
-
     }
 }

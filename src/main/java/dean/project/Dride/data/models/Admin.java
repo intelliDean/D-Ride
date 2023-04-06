@@ -15,6 +15,6 @@ public class Admin {
     private Long id;
     private String employeeId;
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)       //fetches the appuser with admin when fetched
-    private Details details;
+    private Users users;
 
 }

@@ -1,7 +1,9 @@
 package dean.project.Dride.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dean.project.Dride.data.dto.request.UserRegisterRequest;
+import dean.project.Dride.data.dto.request.RegisterPassengerRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -19,28 +21,33 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ExtendWith(MockitoExtension.class)
+@Slf4j
 class PassengerControllerTest {
     @Autowired
     private MockMvc mockMvc;
-    private ObjectMapper objectMapper = new ObjectMapper();
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @BeforeEach
     void setUp() {
-
     }
 
     @Test
-    void testRegister() throws Exception {
-        UserRegisterRequest request =
-                UserRegisterRequest.builder()
-                        .name("Dean")
-                        .email("@gmail")
-                        .password("1234")
-                        .build();
+    void testRegisterPassenger() throws Exception {
+       RegisterPassengerRequest request = new RegisterPassengerRequest();
+       request.setName("Dean");
+       request.setEmail("dean4luv@yahoo.com");
+       request.setPassword("dean_baby1234");
 
-        mockMvc.perform(post("/api/v1/passenger/register")
-                        .content(objectMapper.writeValueAsString(request))
-                        .contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(status().is(HttpStatus.CREATED.value()))
-                .andDo(print());
+       String jsonRequest = objectMapper.writeValueAsString(request);
+
+            mockMvc.perform(post("/api/v1/passenger")
+                    .content(jsonRequest)
+                    .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().is(HttpStatus.CREATED.value()))
+                    .andDo(print());
+
     }
+
+
 }

@@ -1,5 +1,6 @@
 package dean.project.Dride.data.models;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,5 +18,6 @@ public class Passenger {
     @Enumerated(value = EnumType.STRING)
     private Gender gender;
     @OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-    private Details details;
+    @JsonUnwrapped
+    private Users users;
 }

@@ -1,10 +1,8 @@
 package dean.project.Dride.data.models;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.Set;
 
@@ -12,6 +10,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Getter
 @Setter
+@Builder
 @Entity
 public class Referee {
     @Id
@@ -21,9 +20,10 @@ public class Referee {
     private String lastName;
     private int age;
     private String phoneNumber;
-    @Enumerated(EnumType.STRING)
+    @Enumerated(value=EnumType.STRING)
     private Gender gender;
     @OneToOne
+    @JsonUnwrapped
     private Address address;
     private String occupation;
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)

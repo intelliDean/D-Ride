@@ -3,5 +3,9 @@ package dean.project.Dride.data.repositories;
 import dean.project.Dride.data.models.Admin;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface AdminRepository extends JpaRepository<Admin, Long> {
+import java.util.Optional;
+
+public interface AdminRepository  extends JpaRepository<Admin, Long> {
+    Optional<Admin> findAdminByUser_Email(String email);
+    Optional<Admin> findAdminByUser_Id(Long userId);
 }

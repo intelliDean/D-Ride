@@ -1,16 +1,17 @@
 package dean.project.Dride.data.models;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.Set;
 
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
-@Builder
 @Entity
 public class Referee {
     @Id
@@ -18,14 +19,13 @@ public class Referee {
     private Long id;
     private String firstName;
     private String lastName;
-    private int age;
-    private String phoneNumber;
-    @Enumerated(value=EnumType.STRING)
-    private Gender gender;
-    @OneToOne
-    @JsonUnwrapped
-    private Address address;
     private String occupation;
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private Set<Driver> driver;
+    private Set<Driver> drivers;
+    private int age;
+    @OneToOne
+    private Address address;
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
+    private String phoneNumber;
 }

@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @ToString
-public class ApiResponse{
+public class ApiResponse {
     private String message;
     private BigDecimal fare;
     private String estimatedTimeOfArrival;

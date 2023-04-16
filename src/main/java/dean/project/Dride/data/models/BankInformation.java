@@ -9,16 +9,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
+@Entity
 @Getter
 @Setter
-@Entity
 public class BankInformation {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    private String bankName;
     private String accountNumber;
     private String accountName;
-    private String bankName;
 }

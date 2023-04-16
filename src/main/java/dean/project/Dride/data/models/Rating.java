@@ -6,11 +6,12 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum Rating {
-    BAD(1),
-    FAIR(2),
-    GOOD(3),
-    SATISFACTORY(4),
+    POOR(1),
+    BAD(2),
+    SATISFACTORY(3),
+    GOOD(4),
     EXCELLENT(5);
 
     private final int rating;
+
 }

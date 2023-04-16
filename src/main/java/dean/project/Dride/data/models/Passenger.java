@@ -4,12 +4,15 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import jakarta.persistence.*;
 import lombok.*;
 
-@NoArgsConstructor
-@AllArgsConstructor
+import java.util.HashSet;
+import java.util.Set;
+
+@Entity
 @Getter
 @Setter
-@Entity
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Passenger {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -17,7 +20,9 @@ public class Passenger {
     private String phoneNumber;
     @Enumerated(value = EnumType.STRING)
     private Gender gender;
-    @OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JsonUnwrapped
-    private Users users;
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private User user;
+    @OneToMany()
+    private Set<Ride> rides = new HashSet<>();
 }

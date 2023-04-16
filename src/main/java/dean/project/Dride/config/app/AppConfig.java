@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dean.project.Dride.config.distance.DistanceConfig;
 import dean.project.Dride.config.mail.MailConfig;
 import dean.project.Dride.config.security.util.JwtUtil;
+import dean.project.Dride.config.sms.SMSConfig;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,34 +18,29 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 public class AppConfig {
-     @Value("${cloudinary.cloud.name}")
+    @Value("${cloudinary.cloud.name}")
     private String cloudName;
     @Value("${cloudinary.api.key}")
     private String apiKey;
     @Value("${cloudinary.api.secret}")
     private String apiSecret;
-
     @Value("${google.distance.url}")
     private String googleDistanceUrl;
     @Value("${google.api.key}")
     private String googleApiKey;
-
     @Value("${mail.api.key}")
     private String mailApiKey;
-
     @Value("${sendinblue.mail.url}")
     private String mailUrl;
-
     @Value("${twilio.account.sid}")
     private String accountSID;
     @Value("${twilio.auth.token}")
     private String authToken;
+    @Value("${db_password}")
+    public static String DB_PASSWORD;
+    @Value("${jwt.secret.key}")
+    private String jwtSecret;
 
-
-    @Bean
-    public ModelMapper modelMapper() {
-        return new ModelMapper();
-    }
 
     @Bean
     public Cloudinary cloudinary() {
@@ -88,6 +84,7 @@ public class AppConfig {
                 .setMatchingStrategy(MatchingStrategies.STANDARD);
         return mapper;
     }
+
     @Bean
     public SMSConfig smsConfig() {
         return new SMSConfig(accountSID, authToken);
@@ -97,5 +94,9 @@ public class AppConfig {
     @Bean
     public ObjectMapper objectMapper() {
         return new ObjectMapper();
+    }
+    @Bean
+    public JwtUtil jwtUtil () {
+        return new JwtUtil(jwtSecret);
     }
 }

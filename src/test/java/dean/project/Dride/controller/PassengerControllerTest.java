@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -33,7 +34,7 @@ class PassengerControllerTest {
     }
 
     @Test
-    void testRegisterPassenger() throws Exception {
+    public void testRegisterPassenger() throws Exception {
        RegisterPassengerRequest request = new RegisterPassengerRequest();
        request.setName("Dean");
        request.setEmail("dean4luv@yahoo.com");

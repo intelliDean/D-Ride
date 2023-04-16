@@ -1,72 +1,83 @@
 package dean.project.Dride.controller;
 
 import com.github.fge.jsonpatch.JsonPatch;
+import dean.project.Dride.config.app.Paginate;
+import dean.project.Dride.data.dto.request.BookRideRequest;
+import dean.project.Dride.data.dto.request.RateDriverRequest;
 import dean.project.Dride.data.dto.request.RegisterPassengerRequest;
+import dean.project.Dride.data.dto.request.RideRequest;
+import dean.project.Dride.data.dto.response.ApiResponse;
 import dean.project.Dride.data.dto.response.RegisterResponse;
 import dean.project.Dride.data.models.Passenger;
-import dean.project.Dride.services.passengerServices.PassengerService;
+import dean.project.Dride.services.user_service.UserService;
+import dean.project.Dride.services.passenger_service.PassengerService;
 import lombok.AllArgsConstructor;
-import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@AllArgsConstructor
 @RestController
 @RequestMapping("/api/v1/passenger")
+@AllArgsConstructor
 public class PassengerController {
     private final PassengerService passengerService;
-    private final ModelMapper modelMapper;
+    private final UserService userService;
 
 
-    @PostMapping("register")
-    public ResponseEntity<?> registerPassenger(@RequestBody RegisterPassengerRequest registerPassengerRequest) {
+
+    @PostMapping
+    public ResponseEntity<RegisterResponse> register(@RequestBody RegisterPassengerRequest registerPassengerRequest){
         RegisterResponse registerResponse = passengerService.register(registerPassengerRequest);
-        return ResponseEntity.ok(registerResponse);
+        return ResponseEntity.status(HttpStatus.CREATED).body(registerResponse);
     }
+
 
     @GetMapping("{passengerId}")
-    public ResponseEntity<?> getPassengerById(@PathVariable Long passengerId) {
-        Passenger passenger = passengerService.getPassengerById(passengerId);
-        return ResponseEntity.status(HttpStatus.OK).body(passenger);
-    }
-    @GetMapping("{name}")
-    public ResponseEntity<?> getPassengerByName(@PathVariable String name) {
-        Passenger passenger = passengerService.getPassengerByName(name);
-
-        return ResponseEntity.status(HttpStatus.OK).body(passenger);
+    public ResponseEntity<Passenger> getPassengerById(@PathVariable Long passengerId){
+        Passenger foundPassenger = passengerService.getPassengerById(passengerId);
+        return ResponseEntity.status(HttpStatus.OK).body(foundPassenger);
     }
 
-    @PatchMapping(value = "{passengerId}", consumes = "application/json-patch+json")
-    public ResponseEntity<?> updatePassengerField(@PathVariable Long passengerId, @RequestBody JsonPatch updatePatch) {
+    @GetMapping("/all/{pageNumber}")
+    public ResponseEntity<Paginate<Passenger>> getAllPassengers(@PathVariable int pageNumber){
+        Paginate<Passenger> response =  passengerService.getAllPassengers(pageNumber);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("{passengerId}")
+    public ResponseEntity<?> updatePassenger(@PathVariable Long passengerId, @RequestBody JsonPatch updatePatch){
         try {
-            var response = passengerService.updatePassengerInfo(passengerId, updatePatch);
+            var response = passengerService.updatePassenger(passengerId, updatePatch);
             return ResponseEntity.status(HttpStatus.OK).body(response);
-        } catch (Exception ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
+        }catch (Exception exception){
+            return ResponseEntity.badRequest().body(exception.getMessage());
         }
     }
 
     @DeleteMapping("{passengerId}")
-    public ResponseEntity<?> deletePassenger(@PathVariable Long passengerId) {
+    public ResponseEntity<?> deletePassenger(@PathVariable Long passengerId){
         passengerService.deletePassenger(passengerId);
-
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(String.format("Passenger with ID %d deleted successfully", passengerId));
+        return ResponseEntity.ok("Passenger deleted successfully");
+    }
+    @PostMapping("book")
+    public ResponseEntity<ApiResponse> attemptBookRide(@RequestBody BookRideRequest request) {
+        ApiResponse response = passengerService.attemptBookRide(request);
+        return ResponseEntity.ok(response);
+    }
+    @PostMapping("/bookRide")
+    public ResponseEntity<?> bookRide(@RequestBody RideRequest request) {
+        var response = passengerService.bookRide(request);
+        return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("deleteAll")
-    public ResponseEntity<?> deleteAllPassengers() {
-        passengerService.deleteAllPassengers();
-
-        return ResponseEntity.status(HttpStatus.OK).body("All Passengers deleted successfully");
+    @GetMapping("/current")
+    public ResponseEntity<?> getCurrentPassenger(){
+        var response = userService.CurrentAppUser();
+        return ResponseEntity.ok(response);
     }
-
-    @GetMapping("/getAll/{pageNumber}")
-    public ResponseEntity<Page<?>> getAllPassengers(@PathVariable int pageNumber) {
-        return ResponseEntity.status(HttpStatus.OK).body(passengerService.getAllPassengers(pageNumber));
+    @PostMapping("/rate")
+    public ResponseEntity<ApiResponse> rateDriver(@RequestBody RateDriverRequest request) {
+        ApiResponse response = passengerService.rateDriver(request);
+        return ResponseEntity.ok(response);
     }
-
-
 }

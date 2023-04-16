@@ -1,14 +1,17 @@
 package dean.project.Dride.data.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
 @Builder
 public class RegisterPassengerRequest {
-    private String name;
     private String email;
+    @JsonProperty("full_name")
+    private String name;
+    @JsonProperty("password")
     private String password;
 }

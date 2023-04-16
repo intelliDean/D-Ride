@@ -1,5 +1,27 @@
-<p>Hi %s,
-            You have been invited as an admin to Dride.
-            Please click 'activate' below to activate your account.<br/>
-            <a href="%s"> Activate </a>
-</p>
+<!DOCTYPE html>
+<html lang="en">
+  <body>
+    <p>
+      Dear %s,<br /><br />
+      We are delighted to invite you to join our team at Dride as an admin.<br />
+      Your skills and experience will be a valuable contribution to our company.
+      <br /><br />
+      To activate your admin privileges, kindly on click
+      <a href="%s" target="_blank"><button>activate</button></a> <br /><br />
+      Once activated, you will have access to the admin portal where you can set
+      up your account and access <br />
+      necessary tools for overseeing and managing various aspects of our
+      company's operations. We have full <br />confidence in your ability to excel in
+      this role. <br /><br />
+      We are excited to have you join our team and look forward to working
+      together to further Dride's success.
+      <br />
+      If you have any questions or need assistance, please reach out to us.
+      <br /><br />
+      Best regards,<br />
+      Michael Dean <br />
+      CEO<br />
+      Dride<br />
+    </p>
+  </body>
+</html>

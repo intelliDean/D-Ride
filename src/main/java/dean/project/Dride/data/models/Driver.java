@@ -1,35 +1,42 @@
 package dean.project.Dride.data.models;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-@NoArgsConstructor
+import java.util.HashSet;
+import java.util.Set;
+
+@Entity
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
-@Entity
 @Builder
 public class Driver {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String phoneNumber;
-    @OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToOne
     private Address address;
-//    @Transient used to be MultipartFile
-    private String profileImage;
-    private String licenseImage;
-    private String licenseId;
-    private int age;
-    @Enumerated(value = EnumType.STRING)
+    @Enumerated(EnumType.STRING)
     private Gender gender;
-    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    private BankInformation bankInformation;
+    private String licenseId;
+    private String licenseImage;
+    private int age;
     @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Referee referee;
     @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    private Users users;
+    private BankInformation bankInformation;
+    @JsonUnwrapped
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private User user;
+    @OneToMany()
+    private Set<Ride> rides = new HashSet<>();
+
+
 }

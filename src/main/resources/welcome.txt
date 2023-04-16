@@ -1,11 +1,27 @@
-<!Doctype html>
-<html>
-    <body>
-        <p>Hi %s,
-            We say THANK YOU for choosing Dride, where we take you to your dream.
-            Fasten your seat bet, sit tight and enjoy every it of it because it going to be a harmonious ride.
-            Please click 'activate' below to activate your account.<br/>
-            <a href="%s"> Activate </a>
-        </p>
-    </body>
+<!DOCTYPE html>
+<html lang="en">
+  <body>
+    <p>
+      Dear %s,<br /><br />
+      We extend a warm welcome to you as a valued member of our team at Dride.<br />
+      We are thrilled to have you on board as our driver, and we believe that<br />
+      your expertise and skills will greatly contribute to our company's growth.<br /><br />
+
+      This is an exciting time for us as we continue to expand and make strides<br />
+      in our industry, and we are honored to have you join us on this journey.<br />
+      We are eager to collaborate with you and leverage your talents to drive<br />
+      Dride's success to new heights.<br /><br />
+
+      To get started, please click on the <a href="%s" target="_blank"<button>activate</button></a> button to enable your account<br />
+      and gain access to our systems. We are confident that your addition to our<br />
+      team will make a positive impact, and we eagerly anticipate working together<br />
+      towards our shared goals.<br /><br />
+
+      Once again, welcome to Dride, and we are excited to have you on our team!<br /><br />
+
+      Best regards,<br />
+      Deborah Sultan<br />
+      HR & Talent Manager<br />
+    </p>
+  </body>
 </html>

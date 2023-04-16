@@ -1,7 +1,6 @@
 package dean.project.Dride.data.dto.response;
 
-
-import dean.project.Dride.data.models.Users;
+import dean.project.Dride.data.models.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +12,6 @@ import lombok.Setter;
 @Setter
 public class AdminResponse {
     private Long employeeId;
-    private Users users;
+    private User userDetails;
 
 }

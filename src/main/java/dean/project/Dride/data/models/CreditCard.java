@@ -7,20 +7,19 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
+@Entity
 @Getter
 @Setter
-@Entity
 public class CreditCard {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    private String cardNumber;
-    private int cvv;
     @ManyToOne
     private Passenger passenger;
+    private String cardNumber;
+    private int cvv;
     private LocalDate expiryDate;
 }

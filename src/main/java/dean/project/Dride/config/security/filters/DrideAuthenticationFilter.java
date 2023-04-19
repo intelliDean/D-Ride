@@ -20,8 +20,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.Key;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
@@ -34,6 +36,7 @@ public class DrideAuthenticationFilter extends UsernamePasswordAuthenticationFil
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
+    //private final Key key;
 
 
 /*todo
@@ -106,7 +109,6 @@ public class DrideAuthenticationFilter extends UsernamePasswordAuthenticationFil
         Date refreshExpiration = Date.from(Instant.now()
                 .plusSeconds(BigInteger.valueOf(3600).longValue() *
                         BigInteger.valueOf(24).intValue()));
-
 
         return Jwts.builder()
                 .setIssuer("dride")

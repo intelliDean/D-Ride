@@ -46,7 +46,7 @@ public class DrideAuthorizationFilter extends OncePerRequestFilter {
         boolean toRegisterPassenger = request.getServletPath().equals("/api/v1/passenger");
         boolean toInviteAdmin = request.getServletPath().equals("/api/v1/admin");
 
-        if (toLogin || toRegisterDriver || toRegisterPassenger) {
+        if (toLogin || toRegisterDriver || toRegisterPassenger || toInviteAdmin) {
             filterChain.doFilter(request, response);
         } else {
             if (StringUtils.hasText(authHeader) && StringUtils.startsWithIgnoreCase(authHeader, "Bearer ")) {
@@ -78,6 +78,7 @@ public class DrideAuthorizationFilter extends OncePerRequestFilter {
                 .parseClaimsJws(jwt)
                 .getBody();
         jwtMap.forEach((k, v) -> roles.add(v.toString()));
+        //jwtMap.getBody().forEach((k, v) -> roles.add(v.toString()));
 
         List<SimpleGrantedAuthority> roleLists = roles.stream()
                 .map(SimpleGrantedAuthority::new)

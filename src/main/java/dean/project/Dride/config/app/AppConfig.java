@@ -7,6 +7,7 @@ import dean.project.Dride.config.distance.DistanceConfig;
 import dean.project.Dride.config.mail.MailConfig;
 import dean.project.Dride.config.security.util.JwtUtil;
 import dean.project.Dride.config.sms.SMSConfig;
+import io.jsonwebtoken.SignatureAlgorithm;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +16,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import javax.crypto.KeyGenerator;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 
 @Configuration
 public class AppConfig {
@@ -36,6 +43,8 @@ public class AppConfig {
     private String accountSID;
     @Value("${twilio.auth.token}")
     private String authToken;
+    @Value("${twilio.phone.number}")
+    private String phoneNumber;
     @Value("${db_password}")
     public static String DB_PASSWORD;
     @Value("${jwt.secret.key}")
@@ -87,7 +96,7 @@ public class AppConfig {
 
     @Bean
     public SMSConfig smsConfig() {
-        return new SMSConfig(accountSID, authToken);
+        return new SMSConfig(accountSID, authToken, phoneNumber);
     }
 
 
@@ -95,8 +104,27 @@ public class AppConfig {
     public ObjectMapper objectMapper() {
         return new ObjectMapper();
     }
+
     @Bean
-    public JwtUtil jwtUtil () {
+    public JwtUtil jwtUtil() {
         return new JwtUtil(jwtSecret);
     }
+
+//    @Bean
+//    public Key getSecretKey() {
+//        KeyGenerator keyGen;
+//        try {
+//            keyGen = KeyGenerator.getInstance("HmacSHA512");     //specify the algorithm
+//        } catch (NoSuchAlgorithmException e) {
+//            throw new RuntimeException(e);
+//        }
+//        SecureRandom random = new SecureRandom();
+//        keyGen.init(random); // 512 before
+//        return keyGen.generateKey();
+//    }
+
+//    @Bean
+//    public Key secretKey() {
+//        return new SecretKeySpec(jwtSecret.getBytes(), SignatureAlgorithm.HS512.getJcaName());
+//    }
 }

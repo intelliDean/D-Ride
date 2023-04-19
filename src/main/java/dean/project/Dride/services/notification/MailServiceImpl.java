@@ -15,14 +15,15 @@ import org.springframework.web.client.RestTemplate;
 @Service
 @AllArgsConstructor
 @Slf4j
-public class MailServiceImpl implements MailService{
+public class MailServiceImpl implements MailService {
 
     private final MailConfig mailConfig;
 
 
     @Override
-    public String sendHtmlMail(EmailNotificationRequest request)  {
+    public String sendHtmlMail(EmailNotificationRequest request) {
         RestTemplate restTemplate = new RestTemplate();
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("api-key", mailConfig.getApiKey());
@@ -30,9 +31,25 @@ public class MailServiceImpl implements MailService{
 
         ResponseEntity<String> response =
                 restTemplate.postForEntity(mailConfig.getMailUrl(), requestEntity, String.class);
-        log.info("res->{}", response);
+        //log.info("res->{}", response);
         return response.getBody();
+
     }
+//
+//    public String sendMail() {
+//        RestTemplate restTemplate = new RestTemplate();
+//        String url = "https://example.com/api/resource";
+//        String requestBody = "{ \"name\": \"John Doe\", \"age\": 30 }";
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(MediaType.APPLICATION_JSON);
+//        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+//
+//        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+//
+//        System.out.println("Response status code: " + response.getStatusCode());
+//        System.out.println("Response body: " + response.getBody());
+//        re
+//    }
 
 }
 

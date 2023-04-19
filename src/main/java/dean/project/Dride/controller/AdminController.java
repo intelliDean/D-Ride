@@ -41,6 +41,4 @@ public class AdminController {
         Admin admin = adminService.getAdminById(adminId);
         return ResponseEntity.ok(admin);
     }
-
-
 }

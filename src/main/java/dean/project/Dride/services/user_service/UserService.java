@@ -11,7 +11,7 @@ public interface UserService {
 
     ApiResponse verifyAccount(Long userId, String token);
 
-    User CurrentAppUser();
+    String CurrentAppUser();
 
     User getByEmail(String email);
     User getByUserId(Long userId);

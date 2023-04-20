@@ -20,7 +20,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserController {
     private final UserService userService;
 
-
     @PostMapping(value = "/upload/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "To upload any user profile picture")
     public ResponseEntity<?> uploadProfileImage(
@@ -87,5 +86,10 @@ public class UserController {
             @RequestParam int pageNumber) {
         Paginate<User> users = userService.getAllUsers(pageNumber);
         return ResponseEntity.ok(users);
+    }
+    @GetMapping("current")
+    public ResponseEntity<?> getCurrentUser() {
+        var user = userService.CurrentAppUser();
+        return ResponseEntity.ok(user);
     }
 }

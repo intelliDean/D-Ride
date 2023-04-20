@@ -45,15 +45,17 @@ public class DrideAuthorizationFilter extends OncePerRequestFilter {
         boolean toRegisterDriver = request.getServletPath().equals("/api/v1/driver/register");
         boolean toRegisterPassenger = request.getServletPath().equals("/api/v1/passenger");
         boolean toInviteAdmin = request.getServletPath().equals("/api/v1/admin");
+        boolean toVerifyUser = request.getServletPath().equals("/api/v1/user/account/verify");
 
-        if (toLogin || toRegisterDriver || toRegisterPassenger || toInviteAdmin) {
+        if (toLogin || toRegisterDriver || toRegisterPassenger || toInviteAdmin || toVerifyUser) {
             filterChain.doFilter(request, response);
         } else {
             if (StringUtils.hasText(authHeader) && StringUtils.startsWithIgnoreCase(authHeader, "Bearer ")) {
                 String token = request.getHeader(AUTHORIZATION);
                 String jwt = token.substring("Bearer ".length());
-                boolean tokenIsSigned = Jwts.parser()
+                boolean tokenIsSigned = Jwts.parserBuilder()
                         .setSigningKey(jwtUtil.getJwtSecret())
+                        .build()
                         .isSigned(jwt);
 
                 if (tokenIsSigned) {
@@ -73,8 +75,9 @@ public class DrideAuthorizationFilter extends OncePerRequestFilter {
 
     private void savePrincipalInSecurityContextHolder(UserDetails userDetails, String jwt) {
         List<String> roles = new ArrayList<>();
-        var jwtMap = Jwts.parser()
+        var jwtMap = Jwts.parserBuilder()
                 .setSigningKey(jwtUtil.getJwtSecret())
+                .build()
                 .parseClaimsJws(jwt)
                 .getBody();
         jwtMap.forEach((k, v) -> roles.add(v.toString()));

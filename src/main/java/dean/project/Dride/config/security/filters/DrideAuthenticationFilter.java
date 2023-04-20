@@ -6,6 +6,7 @@ import dean.project.Dride.data.models.User;
 import dean.project.Dride.exceptions.DrideException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.impl.TextCodec;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -127,7 +128,7 @@ public class DrideAuthenticationFilter extends UsernamePasswordAuthenticationFil
                 .setClaims(claims)
                 .setSubject(user.getUsername())
                 .setExpiration(accessExpiration)
-                .signWith(SignatureAlgorithm.HS512, jwtUtil.getJwtSecret())
+                .signWith(SignatureAlgorithm.HS512, TextCodec.BASE64.decode(jwtUtil.getJwtSecret()))
                 .compact();
     }
 }

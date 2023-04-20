@@ -44,29 +44,29 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ApiResponse uploadProfileImage(MultipartFile profileImage, Long appUserId) {
-        UserRecord userRecord = getUserRecord(appUserId); // TODO: I am yet to test this, if e give me wahala I go comot am
+        User user = getByUserId(appUserId);
 
         String imageUrl = cloudService.upload(profileImage);
         if (imageUrl.isEmpty()) {
             throw new DrideException("Image upload failed");
         }
-        userRecord.passenger().ifPresent(p -> p.getUser().setProfileImage(imageUrl));
-        userRecord.driver().ifPresent(d -> d.getUser().setProfileImage(imageUrl));
-        userRecord.admin().ifPresent(a -> a.getUser().setProfileImage(imageUrl));
+
+        user.setProfileImage(imageUrl);
+        userRepository.save(user);
         return ApiResponse.builder()
                 .message("SUCCESS")
                 .build();
     }
-
     private UserRecord getUserRecord(Long appUserId) {
-        User user = getByUserId(appUserId);
+        if (!userRepository.existsById(appUserId)) throw new DrideException("User does not exist");
+
         Optional<Driver> driver = Optional.empty();
         Optional<Admin> admin = Optional.empty();
-        Optional<Passenger> passenger = passengerService.getPassengerByUserId(user.getId());
+        Optional<Passenger> passenger = passengerService.getPassengerByUserId(appUserId);
         if (passenger.isEmpty()) {
-            driver = driverService.getDriverByUserId(user.getId());
+            driver = driverService.getDriverByUserId(appUserId);
             if (driver.isEmpty()) {
-                admin = adminService.getAdminByUserId(user.getId());
+                admin = adminService.getAdminByUserId(appUserId);
                 if (admin.isEmpty()) {
                     throw new DrideException("User could not be found");
                 }
@@ -86,7 +86,7 @@ public class UserServiceImpl implements UserService {
         //TODO: To get verified, the jwt in the link sent will be checked if signed and not expired
         //TODO: the userId in the link sent will be checked if existed in db
         //TODO: if these conditions are met, then the account will be verified and enabled
-        if (DrideUtilities.isValidToken(token)) {
+        if (DrideUtilities.isTokenSigned(token)) {
             return getVerifiedResponse(userId);
         }
         throw new DrideException(
@@ -98,6 +98,7 @@ public class UserServiceImpl implements UserService {
         UserRecord userRecord = getUserRecord(userId);
         userRecord.driver.ifPresent(this::enableDriverAccount);
         userRecord.passenger.ifPresent(this::enablePassengerAccount);
+        userRecord.admin.ifPresent(this::enableAdminAccount);
         return ApiResponse.builder()
                 .message("SUCCESS")
                 .build();
@@ -112,17 +113,23 @@ public class UserServiceImpl implements UserService {
         driver.getUser().setIsEnabled(true);
         driverService.saveDriver(driver);
     }
+    private void enableAdminAccount(Admin admin) {
+        admin.getUser().setIsEnabled(true);
+        adminService.saveAdmin(admin);
+    }
 
     @Override
     public User getByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("user with email not found"));
+                .orElseThrow(() ->
+                        new UsernameNotFoundException("user with email not found"));
     }
 
     @Override
     public User getByUserId(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("user could not be found"));
+                .orElseThrow(() ->
+                        new UsernameNotFoundException("user could not be found"));
     }
 
     @Override
@@ -138,14 +145,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User CurrentAppUser() {
+    public String CurrentAppUser() {
         try {
-            AuthenticatedUser principal = (AuthenticatedUser) SecurityContextHolder
+            AuthenticatedUser user  = (AuthenticatedUser) SecurityContextHolder
                     .getContext()
                     .getAuthentication()
                     .getPrincipal();
 
-            return principal.getUser();
+            return user+" nothing is here";
         } catch (Exception e) {
             throw new UserNotFoundException(e.getMessage());
         }

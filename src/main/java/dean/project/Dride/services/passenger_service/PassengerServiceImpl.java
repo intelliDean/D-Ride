@@ -92,7 +92,7 @@ public class PassengerServiceImpl implements PassengerService {
         EmailNotificationRequest mailRequest = new EmailNotificationRequest();
         mailRequest.setSubject(USER_SUBJECT);
         mailRequest.getTo().add(new Recipient(appUser.getName(), appUser.getEmail()));
-        String message = DrideUtilities.getMailTemplate();
+        String message = DrideUtilities.passengerWelcomeMail();
         String content = String.format(message, appUser.getName(), DrideUtilities.generateVerificationLink(savedPassenger.getId()));
         mailRequest.setHtmlContent(content);
 

@@ -20,17 +20,17 @@ public class DrideAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        UserDetails appUserDetails = userDetailsService.loadUserByUsername(
+        UserDetails userDetails = userDetailsService.loadUserByUsername(
                 authentication.getPrincipal().toString());
 
         if (passwordEncoder.matches(
                 authentication.getCredentials().toString(),
-                appUserDetails.getPassword()))
+                userDetails.getPassword()))
 
             return new UsernamePasswordAuthenticationToken(
-                    appUserDetails.getUsername(),
-                    appUserDetails.getPassword(),
-                    appUserDetails.getAuthorities());
+                    userDetails.getUsername(),
+                    userDetails.getPassword(),
+                    userDetails.getAuthorities());
 
         throw new BadCredentialsException("incorrect username or password");
     }

@@ -13,5 +13,6 @@ public interface AdminService {
     Optional<Admin> getAdminByUserId(Long userId);
     Admin adminDetails(AdminDetailsRequest adminDetails);
     Admin getAdminById(Long adminId);
-
+    Optional<Admin> getById(Long adminId);
+    void saveAdmin(Admin admin);
 }

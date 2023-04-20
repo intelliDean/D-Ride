@@ -55,9 +55,8 @@ public class AdminServiceImpl implements AdminService {
     }
     @Override
     public Admin adminDetails(AdminDetailsRequest adminDetails) {
-        UUID uuid = new UUID(7L, 12L);
         Admin admin = getAdminById(adminDetails.getAdminId());
-        admin.setEmployeeId(uuid.toString());
+        admin.setEmployeeId(generateEmployeeId(admin));
 
         User user = admin.getUser();
         user.setPassword(encoder.encode(adminDetails.getPassword()));
@@ -68,10 +67,32 @@ public class AdminServiceImpl implements AdminService {
         return adminRepository.save(admin);
     }
 
+    private String generateEmployeeId(Admin admin) {
+        StringBuilder builder = new StringBuilder();
+        String[] first = admin.getUser().getName().split(" ");
+        for (String s : first) {
+            builder.append(s.charAt(0));
+        }
+        String init = builder.toString().toUpperCase();
+        String adminId = String.valueOf(admin.getId());
+        String userId = String.valueOf(admin.getUser().getId());
+        return String.format("%s%s%s", init, adminId, userId);
+    }
+
     @Override
     public Admin getAdminById(Long adminId) {
         return adminRepository.findById(adminId)
                 .orElseThrow(()-> new UserNotFoundException("Admin could not be found"));
+    }
+
+    @Override
+    public Optional<Admin> getById(Long adminId) {
+        return adminRepository.findById(adminId);
+    }
+
+    @Override
+    public void saveAdmin(Admin admin) {
+        adminRepository.save(admin);
     }
 
     @Override

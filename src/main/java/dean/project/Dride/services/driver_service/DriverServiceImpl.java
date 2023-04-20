@@ -93,7 +93,7 @@ public class DriverServiceImpl implements DriverService {
         EmailNotificationRequest request = new EmailNotificationRequest();
         request.setSubject(USER_SUBJECT);
         request.getTo().add(new Recipient(name, email));
-        String template = DrideUtilities.getMailTemplate();
+        String template = DrideUtilities.driverWelcomeMail();
         String content = String.format(template, name, DrideUtilities.generateVerificationLink(userId));
         request.setHtmlContent(content);
         return request;

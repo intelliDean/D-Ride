@@ -1,6 +1,6 @@
 package dean.project.Dride.services.user_service;
 
-import dean.project.Dride.config.app.Paginate;
+import dean.project.Dride.utilities.Paginate;
 import dean.project.Dride.data.dto.response.ApiResponse;
 import dean.project.Dride.data.models.User;
 import org.springframework.web.multipart.MultipartFile;

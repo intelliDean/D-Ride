@@ -1,5 +1,6 @@
 package dean.project.Dride.services.admin_service;
 
+import dean.project.Dride.utilities.Paginate;
 import dean.project.Dride.data.dto.request.AdminDetailsRequest;
 import dean.project.Dride.data.dto.request.EmailNotificationRequest;
 import dean.project.Dride.data.dto.request.InviteAdminRequest;
@@ -13,16 +14,22 @@ import dean.project.Dride.exceptions.UserNotFoundException;
 import dean.project.Dride.services.notification.MailService;
 import dean.project.Dride.utilities.DrideUtilities;
 import lombok.AllArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.threeten.bp.LocalDateTime;
 
+import java.lang.reflect.Type;
 import java.util.HashSet;
 import java.util.Optional;
-import java.util.UUID;
 
 import static dean.project.Dride.data.models.Role.ADMINISTRATOR;
 import static dean.project.Dride.utilities.DrideUtilities.ADMIN_SUBJECT;
+import static dean.project.Dride.utilities.DrideUtilities.NUMBER_OF_ITEMS_PER_PAGE;
 
 
 @Service
@@ -31,24 +38,26 @@ public class AdminServiceImpl implements AdminService {
     private final AdminRepository adminRepository;
     private final MailService mailService;
     private final PasswordEncoder encoder;
+    private final ModelMapper modelMapper;
 
     @Override
     public ApiResponse sendInviteRequests(InviteAdminRequest invitation) {
+
         EmailNotificationRequest request = new EmailNotificationRequest();
         Admin admin = createAdminProfile(invitation);
         Recipient recipient = createRecipient(admin);
 
         request.setSubject(ADMIN_SUBJECT);
         request.getTo().add(recipient);
-        Long userId = admin.getId();
+        Long userId = admin.getUser().getId();
         String adminName = admin.getUser().getName();
 
         String adminMail = DrideUtilities.getAdminMailTemplate();
         request.setHtmlContent(String.format(adminMail, adminName, DrideUtilities.generateVerificationLink(userId)));
-        var response = mailService.sendHtmlMail(request);
+        var response = mailService.sendHTMLMail(request);
         if (response != null) {
             return ApiResponse.builder()
-                    .message("invite requests sent")
+                    .message("invite requests sent to admin with id: "+admin.getId())
                     .build();
         }
         throw new DrideException("Invitation request sending failed");
@@ -59,10 +68,9 @@ public class AdminServiceImpl implements AdminService {
         admin.setEmployeeId(generateEmployeeId(admin));
 
         User user = admin.getUser();
-        user.setPassword(encoder.encode(adminDetails.getPassword()));
-        user.setCreatedAt(LocalDateTime.now().toString());
         user.setRoles(new HashSet<>());
         user.getRoles().add(ADMINISTRATOR);
+        user.setPassword(encoder.encode(adminDetails.getPassword()));
 
         return adminRepository.save(admin);
     }
@@ -86,13 +94,19 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public Optional<Admin> getById(Long adminId) {
-        return adminRepository.findById(adminId);
+    public void saveAdmin(Admin admin) {
+        adminRepository.save(admin);
     }
 
     @Override
-    public void saveAdmin(Admin admin) {
-        adminRepository.save(admin);
+    public Paginate<Admin> getAllAdmins(int pageNumber) {
+        if (pageNumber < 0) pageNumber = 0;
+        else pageNumber -= 1;
+
+        Pageable pageable = PageRequest.of(pageNumber, NUMBER_OF_ITEMS_PER_PAGE);
+        Page<Admin> admin = adminRepository.findAll(pageable);
+         Type type = new TypeToken<Paginate<Admin>>(){}.getType();
+        return modelMapper.map(admin, type);
     }
 
     @Override
@@ -109,6 +123,7 @@ public class AdminServiceImpl implements AdminService {
         User user = User.builder()
                 .email(invitation.getEmail())
                 .name(invitation.getName())
+                .createdAt(LocalDateTime.now().toString())
                 .build();
 
         Admin admin = Admin.builder()

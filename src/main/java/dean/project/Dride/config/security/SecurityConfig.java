@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -21,13 +22,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @AllArgsConstructor
+@EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfig {
 
     private final AuthenticationManager authenticationManager;
     private final AuthenticationEntryPoint authenticationEntryPoint;
     private final UserDetailsService userDetailsService;
     private final JwtUtil jwtUtil;
-    private final String[] AUTHENTICATION_WHITE_LIST = {"/api/v1/driver/register", "/api/v1/passenger", "/api/v1/admin", "/api/v1/login", "/api/v1/user/account/verify"};
+    private final String[] AUTHENTICATION_WHITE_LIST = {"/api/v1/driver/register", "/api/v1/passenger",
+            "/api/v1/admin", "/api/v1/login", "/api/v1/user/account/verify", "/api/v1/admin/details"};
     private final String[] SWAGGERS={"/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**"};
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -45,8 +48,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests()
                 .requestMatchers(HttpMethod.POST, AUTHENTICATION_WHITE_LIST).permitAll()
                 .requestMatchers(SWAGGERS).permitAll()
-                .and()
-                .authorizeHttpRequests().anyRequest().authenticated()
+                .anyRequest().authenticated()
                 .and()
                 .build();
     }

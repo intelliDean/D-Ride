@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
-import dean.project.Dride.config.app.Paginate;
+import dean.project.Dride.utilities.Paginate;
 import dean.project.Dride.config.distance.DistanceConfig;
 import dean.project.Dride.data.dto.request.*;
 import dean.project.Dride.data.dto.response.*;
@@ -88,15 +88,15 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     private String sendWelcomeMail(Passenger savedPassenger) {
-        User appUser = savedPassenger.getUser();
+        User user = savedPassenger.getUser();
         EmailNotificationRequest mailRequest = new EmailNotificationRequest();
         mailRequest.setSubject(USER_SUBJECT);
-        mailRequest.getTo().add(new Recipient(appUser.getName(), appUser.getEmail()));
+        mailRequest.getTo().add(new Recipient(user.getName(), user.getEmail()));
         String message = DrideUtilities.passengerWelcomeMail();
-        String content = String.format(message, appUser.getName(), DrideUtilities.generateVerificationLink(savedPassenger.getId()));
+        String content = String.format(message, user.getName(), DrideUtilities.generateVerificationLink(user.getId()));
         mailRequest.setHtmlContent(content);
 
-        return mailService.sendHtmlMail(mailRequest);
+        return mailService.sendHTMLMail(mailRequest);
     }
 
     @Override

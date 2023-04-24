@@ -80,8 +80,8 @@ public class AppConfig {
     }
 
     @Bean
-    public WebClient.Builder getWebClientBuilder() {
-        return WebClient.builder();
+    public WebClient getWebClientBuilder() {
+        return WebClient.builder().build();
     }
 
     @Bean

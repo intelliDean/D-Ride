@@ -1,7 +1,7 @@
 package dean.project.Dride.controller;
 
 import com.github.fge.jsonpatch.JsonPatch;
-import dean.project.Dride.config.app.Paginate;
+import dean.project.Dride.utilities.Paginate;
 import dean.project.Dride.data.dto.request.AcceptRideRequest;
 import dean.project.Dride.data.dto.request.EndRideRequest;
 import dean.project.Dride.data.dto.request.RegisterDriverRequest;

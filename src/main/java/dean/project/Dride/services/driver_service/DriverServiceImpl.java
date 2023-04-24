@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
-import dean.project.Dride.config.app.Paginate;
+import dean.project.Dride.utilities.Paginate;
 import dean.project.Dride.data.dto.request.*;
 import dean.project.Dride.data.dto.response.AcceptRideResponse;
 import dean.project.Dride.data.dto.response.ApiResponse;
@@ -69,10 +69,11 @@ public class DriverServiceImpl implements DriverService {
         driver.setLicenseImage(imageUrl);
         //3. save driver
         Driver savedDriver = driverRepository.save(driver);
+        user = savedDriver.getUser();
         //4. send verification mail to driver
         EmailNotificationRequest emailRequest = buildNotificationRequest(
-                savedDriver.getUser().getEmail(), savedDriver.getUser().getName(), driver.getId());
-        String response = mailService.sendHtmlMail(emailRequest);
+                user.getEmail(), user.getName(), user.getId());
+        String response = mailService.sendHTMLMail(emailRequest);
         if (response == null) return getRegisterFailureResponse();
         return RegisterResponse.builder()
                 .id(savedDriver.getId())

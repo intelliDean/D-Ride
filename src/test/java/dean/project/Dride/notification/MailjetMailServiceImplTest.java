@@ -31,7 +31,7 @@ class MailjetMailServiceImplTest {
 
     @Test
     void sendHtmlMail() {
-        var response = mailService.sendHtmlMail(emailNotificationRequest);
+        var response = mailService.sendHTMLMail(emailNotificationRequest);
         assertThat(response).isNotNull();
     }
 }

@@ -1,5 +1,6 @@
 package dean.project.Dride.services.admin_service;
 
+import dean.project.Dride.utilities.Paginate;
 import dean.project.Dride.data.dto.request.AdminDetailsRequest;
 import dean.project.Dride.data.dto.request.InviteAdminRequest;
 import dean.project.Dride.data.dto.response.ApiResponse;
@@ -13,6 +14,6 @@ public interface AdminService {
     Optional<Admin> getAdminByUserId(Long userId);
     Admin adminDetails(AdminDetailsRequest adminDetails);
     Admin getAdminById(Long adminId);
-    Optional<Admin> getById(Long adminId);
     void saveAdmin(Admin admin);
+    Paginate<Admin> getAllAdmins(int pageNumber);
 }

@@ -2,14 +2,14 @@ package dean.project.Dride.services.notification;
 
 import dean.project.Dride.config.mail.MailConfig;
 import dean.project.Dride.data.dto.request.EmailNotificationRequest;
+import dean.project.Dride.data.models.User;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
 
 
 @Service
@@ -18,39 +18,53 @@ import org.springframework.web.client.RestTemplate;
 public class MailServiceImpl implements MailService {
 
     private final MailConfig mailConfig;
+    private final WebClient webClient;
 
 
     @Override
-    public String sendHtmlMail(EmailNotificationRequest request) {
-        RestTemplate restTemplate = new RestTemplate();
+    public String sendHTMLMail(EmailNotificationRequest request) {
+        String url = mailConfig.getMailUrl();
+        String apiKey = mailConfig.getApiKey();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("api-key", mailConfig.getApiKey());
-        HttpEntity<EmailNotificationRequest> requestEntity = new HttpEntity<>(request, headers);
+        headers.set("api-key", apiKey);
 
-        ResponseEntity<String> response =
-                restTemplate.postForEntity(mailConfig.getMailUrl(), requestEntity, String.class);
-        //log.info("res->{}", response);
-        return response.getBody();
-
+        return webClient.post()
+                .uri(url)
+                .headers(header -> header.addAll(headers))
+                .body(BodyInserters.fromValue(request))
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
     }
-//
-//    public String sendMail() {
+//    public String sendHtmlMail(EmailNotificationRequest request) {
 //        RestTemplate restTemplate = new RestTemplate();
-//        String url = "https://example.com/api/resource";
-//        String requestBody = "{ \"name\": \"John Doe\", \"age\": 30 }";
+//        String url = mailConfig.getMailUrl();
+//        String apiKey = mailConfig.getApiKey();
+//
 //        HttpHeaders headers = new HttpHeaders();
 //        headers.setContentType(MediaType.APPLICATION_JSON);
-//        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+//        headers.set("api-key", apiKey);
+//        HttpEntity<EmailNotificationRequest> requestEntity = new HttpEntity<>(request, headers);
 //
-//        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+//        ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
+//        //log.info("res->{}", response);
+//        return response.getBody();
 //
-//        System.out.println("Response status code: " + response.getStatusCode());
-//        System.out.println("Response body: " + response.getBody());
-//        re
 //    }
 
+    @Override
+    public String getName(Long userId) {
+        User user = webClient.get()
+                .uri("http://localhost:9090/api/v1/user/" + userId)
+                .retrieve()
+                .bodyToMono(User.class)
+                .block();
+        if (user != null) {
+            return user.getName();
+        } else {
+            return "User could not be found";
+        }
+    }
 }
-
-

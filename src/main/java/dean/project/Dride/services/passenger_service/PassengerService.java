@@ -1,7 +1,7 @@
 package dean.project.Dride.services.passenger_service;
 
 import com.github.fge.jsonpatch.JsonPatch;
-import dean.project.Dride.config.app.Paginate;
+import dean.project.Dride.utilities.Paginate;
 import dean.project.Dride.data.dto.request.BookRideRequest;
 import dean.project.Dride.data.dto.request.RateDriverRequest;
 import dean.project.Dride.data.dto.request.RegisterPassengerRequest;

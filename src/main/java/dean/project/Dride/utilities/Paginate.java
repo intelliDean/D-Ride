@@ -1,4 +1,4 @@
-package dean.project.Dride.config.app;
+package dean.project.Dride.utilities;
 
 import lombok.*;
 

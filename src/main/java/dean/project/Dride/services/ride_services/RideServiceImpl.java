@@ -1,6 +1,6 @@
 package dean.project.Dride.services.ride_services;
 
-import dean.project.Dride.config.app.Paginate;
+import dean.project.Dride.utilities.Paginate;
 import dean.project.Dride.data.dto.request.AllRideRequest;
 import dean.project.Dride.data.models.Ride;
 import dean.project.Dride.data.models.Status;

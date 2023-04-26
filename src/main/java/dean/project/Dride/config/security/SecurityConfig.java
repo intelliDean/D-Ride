@@ -18,6 +18,10 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import static dean.project.Dride.utilities.AdminUrls.ADMIN_BASE_URL;
+import static dean.project.Dride.utilities.Constants.LOGIN_URL;
+import static dean.project.Dride.utilities.SecurityUrls.*;
+
 
 @Configuration
 @EnableWebSecurity
@@ -29,17 +33,18 @@ public class SecurityConfig {
     private final AuthenticationEntryPoint authenticationEntryPoint;
     private final UserDetailsService userDetailsService;
     private final JwtUtil jwtUtil;
-    private final String[] AUTHENTICATION_WHITE_LIST = {"/api/v1/driver/register", "/api/v1/passenger",
-            "/api/v1/admin", "/api/v1/login", "/api/v1/user/account/verify", "/api/v1/admin/details"};
-    private final String[] SWAGGERS={"/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**"};
+    private final String[] AUTHENTICATION_WHITE_LIST = {DRIVER_REGISTER, PASSENGER_REGISTER,
+            ADMIN_BASE_URL, LOGIN_URL, VERIFY_USER, ADMIN_DETAILS};
+    private final String[] SWAGGERS={SWAGGER_HTML, SWAGGER_UI, SWAGGER_API_DOCS, SWAGGER_API_DOCS2};
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        UsernamePasswordAuthenticationFilter authenticationFilter = new DrideAuthenticationFilter(authenticationManager, jwtUtil, userDetailsService);
-        authenticationFilter.setFilterProcessesUrl("/api/v1/login");
+        UsernamePasswordAuthenticationFilter authenticationFilter =
+                new DrideAuthenticationFilter(authenticationManager, jwtUtil, userDetailsService);
+        authenticationFilter.setFilterProcessesUrl(LOGIN_URL);
         return http.csrf().disable().cors()
                 .and()
                 .exceptionHandling()
-                .authenticationEntryPoint(authenticationEntryPoint) //todo this might cause problems
+                .authenticationEntryPoint(authenticationEntryPoint)
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()

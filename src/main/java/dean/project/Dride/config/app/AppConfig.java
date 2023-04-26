@@ -7,8 +7,7 @@ import dean.project.Dride.config.distance.DistanceConfig;
 import dean.project.Dride.config.mail.MailConfig;
 import dean.project.Dride.config.security.util.JwtUtil;
 import dean.project.Dride.config.sms.SMSConfig;
-import dean.project.Dride.data.dto.response.GlobalApiResponse;
-import io.jsonwebtoken.SignatureAlgorithm;
+import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,11 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import javax.crypto.KeyGenerator;
-import javax.crypto.spec.SecretKeySpec;
-import java.security.Key;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import static dean.project.Dride.utilities.Constants.*;
 
 @Configuration
 public class AppConfig {
@@ -56,9 +51,9 @@ public class AppConfig {
     public Cloudinary cloudinary() {
         return new Cloudinary(
                 ObjectUtils.asMap(
-                        "cloud_name", cloudName,
-                        "api_key", apiKey,
-                        "api_secret", apiSecret
+                        CLOUD_NAME, cloudName,
+                        API_KEY, apiKey,
+                        API_SECRET, apiSecret
                 )
         );
     }

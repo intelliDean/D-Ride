@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static dean.project.Dride.utilities.Constants.*;
+
 
 @Service
 @AllArgsConstructor
@@ -20,8 +22,8 @@ public class MockLocationServiceImpl implements MockLocationService {
                 List.of(origin.toString()),
                 List.of(new DistanceMatrixRow(
                                 List.of(new DistanceMatrixElement(DistanceMatrixElementStatus.OK,
-                                                new GoogleDistance("10 km", 3500L),
-                                                new GoogleDuration("10 mins", 616L),
+                                                new GoogleDistance(KM, VALUE1),
+                                                new GoogleDuration(MINS, VALUE2),
                                                 new Fare()
                                         )
                                 )

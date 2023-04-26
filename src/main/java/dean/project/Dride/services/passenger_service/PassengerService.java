@@ -5,9 +5,9 @@ import dean.project.Dride.data.dto.request.BookRideRequest;
 import dean.project.Dride.data.dto.request.RateDriverRequest;
 import dean.project.Dride.data.dto.request.RegisterPassengerRequest;
 import dean.project.Dride.data.dto.request.RideRequest;
-import dean.project.Dride.data.dto.response.GlobalApiResponse;
-import dean.project.Dride.data.dto.response.BookRideResponse;
-import dean.project.Dride.data.dto.response.PassengerDTO;
+import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
+import dean.project.Dride.data.dto.response.api_response.BookRideResponse;
+import dean.project.Dride.data.dto.response.entity_dtos.PassengerDTO;
 import dean.project.Dride.data.models.Passenger;
 import dean.project.Dride.utilities.Paginate;
 

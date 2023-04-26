@@ -3,7 +3,7 @@ package dean.project.Dride.config.security.filters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dean.project.Dride.config.security.util.JwtUtil;
-import dean.project.Dride.data.dto.response.GlobalApiResponse;
+import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,6 +23,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static dean.project.Dride.utilities.AdminUrls.ADMIN_BASE_URL;
+import static dean.project.Dride.utilities.Constants.AUTHENTICATION_FAILED;
+import static dean.project.Dride.utilities.Constants.LOGIN_URL;
+import static dean.project.Dride.utilities.SecurityUrls.*;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @AllArgsConstructor
@@ -39,22 +43,22 @@ public class DrideAuthorizationFilter extends OncePerRequestFilter {
         ObjectMapper mapper = new ObjectMapper();
         String authHeader = request.getHeader(AUTHORIZATION);
 
-        UserDetails userDetails = (UserDetails) request.getUserPrincipal(); // TODO this might cause problems
+        UserDetails userDetails = (UserDetails) request.getUserPrincipal();
 
-        boolean toLogin = request.getServletPath().equals("/api/v1/login");
-        boolean toRegisterDriver = request.getServletPath().equals("/api/v1/driver/register");
-        boolean toRegisterPassenger = request.getServletPath().equals("/api/v1/passenger");
-        boolean toInviteAdmin = request.getServletPath().equals("/api/v1/admin");
-        boolean toVerifyUser = request.getServletPath().equals("/api/v1/user/account/verify");
-        boolean adminDetails = request.getServletPath().equals("/api/v1/admin/details");
+        boolean toLogin = request.getServletPath().equals(LOGIN_URL);
+        boolean toRegisterDriver = request.getServletPath().equals(DRIVER_REGISTER);
+        boolean toRegisterPassenger = request.getServletPath().equals(PASSENGER_REGISTER);
+        boolean toInviteAdmin = request.getServletPath().equals(ADMIN_BASE_URL);
+        boolean toVerifyUser = request.getServletPath().equals(VERIFY_USER);
+        boolean adminDetails = request.getServletPath().equals(ADMIN_DETAILS);
 
         if (toLogin || toRegisterDriver || toRegisterPassenger ||
                 toInviteAdmin || toVerifyUser || adminDetails) {
             filterChain.doFilter(request, response);
         } else {
-            if (StringUtils.hasText(authHeader) && StringUtils.startsWithIgnoreCase(authHeader, "Bearer ")) {
+            if (StringUtils.hasText(authHeader) && StringUtils.startsWithIgnoreCase(authHeader, BEARER)) {
                 String token = request.getHeader(AUTHORIZATION);
-                String jwt = token.substring("Bearer ".length());
+                String jwt = token.substring(BEARER.length());   //"Bearer ".length()
                 boolean tokenIsSigned = Jwts.parserBuilder()
                         .setSigningKey(jwtUtil.getJwtSecret())
                         .build()
@@ -68,7 +72,7 @@ public class DrideAuthorizationFilter extends OncePerRequestFilter {
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                     mapper.writeValue(response.getOutputStream(),
                             GlobalApiResponse.builder()
-                                    .message("Authentication not successful")
+                                    .message(AUTHENTICATION_FAILED)
                                     .build());
                 }
             }

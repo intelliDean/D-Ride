@@ -4,8 +4,8 @@ import dean.project.Dride.data.dto.request.AdminDetailsRequest;
 import dean.project.Dride.data.dto.request.EmailNotificationRequest;
 import dean.project.Dride.data.dto.request.InviteAdminRequest;
 import dean.project.Dride.data.dto.request.Recipient;
-import dean.project.Dride.data.dto.response.AdminDTO;
-import dean.project.Dride.data.dto.response.GlobalApiResponse;
+import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
+import dean.project.Dride.data.dto.response.entity_dtos.AdminDTO;
 import dean.project.Dride.data.models.Admin;
 import dean.project.Dride.data.models.User;
 import dean.project.Dride.data.repositories.AdminRepository;
@@ -29,8 +29,8 @@ import java.util.HashSet;
 import java.util.Optional;
 
 import static dean.project.Dride.data.models.Role.ADMINISTRATOR;
-import static dean.project.Dride.utilities.DrideUtilities.ADMIN_SUBJECT;
-import static dean.project.Dride.utilities.DrideUtilities.NUMBER_OF_ITEMS_PER_PAGE;
+import static dean.project.Dride.exceptions.ExceptionMessage.EMAIL_EXCEPTION;
+import static dean.project.Dride.utilities.Constants.*;
 
 
 @Service
@@ -55,20 +55,22 @@ public class AdminServiceImpl implements AdminService {
         String adminName = admin.getUser().getName();
 
         String adminMail = DrideUtilities.getAdminMailTemplate();
-        request.setHtmlContent(String.format(adminMail, adminName, DrideUtilities.generateVerificationLink(userId)));
+        String link = DrideUtilities.generateVerificationLink(userId);
+        request.setHtmlContent(String.format(adminMail, adminName, link));
+
         var response = mailService.sendHTMLMail(request);
         if (response != null) {
             return globalResponse
-                    .message("invite requests sent to admin with id: " + admin.getId())
+                    .message(String.format(ADMIN_IV, admin.getId()))
                     .build();
         }
-        throw new DrideException("Invitation request sending failed");
+        throw new DrideException(EMAIL_EXCEPTION);
     }
 
     @Override
     public AdminDTO adminDetails(AdminDetailsRequest adminDetails) {
         Admin admin = adminRepository.findById(adminDetails.getAdminId())
-                .orElseThrow(() -> new UserNotFoundException("User could not be found"));
+                .orElseThrow(UserNotFoundException::new);
         admin.setEmployeeId(generateEmployeeId(admin));
 
         User user = admin.getUser();
@@ -82,20 +84,20 @@ public class AdminServiceImpl implements AdminService {
 
     private String generateEmployeeId(Admin admin) {
         StringBuilder builder = new StringBuilder();
-        String[] first = admin.getUser().getName().split(" ");
+        String[] first = admin.getUser().getName().split(REGX);
         for (String s : first) {
             builder.append(s.charAt(0));
         }
         String init = builder.toString().toUpperCase();
         String adminId = String.valueOf(admin.getId());
         String userId = String.valueOf(admin.getUser().getId());
-        return String.format("%s%s%s", init, adminId, userId);
+        return String.format(EMP_ID, init, adminId, userId);
     }
 
     @Override
     public AdminDTO getAdminById(Long adminId) {
         Admin admin = adminRepository.findById(adminId)
-                .orElseThrow(() -> new UserNotFoundException("Admin could not be found"));
+                .orElseThrow(UserNotFoundException::new);
         return modelMapper.map(admin, AdminDTO.class);
     }
 
@@ -119,7 +121,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public AdminDTO getAdminByEmail(String email) {
         Admin admin = adminRepository.findAdminByUser_Email(email)
-                .orElseThrow(() -> new UserNotFoundException("Admin not found"));
+                .orElseThrow(UserNotFoundException::new);
         return modelMapper.map(admin, AdminDTO.class);
     }
 

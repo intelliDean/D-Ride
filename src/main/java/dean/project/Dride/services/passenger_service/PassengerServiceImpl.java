@@ -6,9 +6,9 @@ import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import dean.project.Dride.config.distance.DistanceConfig;
 import dean.project.Dride.data.dto.request.*;
-import dean.project.Dride.data.dto.response.BookRideResponse;
-import dean.project.Dride.data.dto.response.GlobalApiResponse;
-import dean.project.Dride.data.dto.response.PassengerDTO;
+import dean.project.Dride.data.dto.response.api_response.BookRideResponse;
+import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
+import dean.project.Dride.data.dto.response.entity_dtos.PassengerDTO;
 import dean.project.Dride.data.dto.response.google_dtos.DistanceMatrixElement;
 import dean.project.Dride.data.dto.response.google_dtos.GoogleDistanceResponse;
 import dean.project.Dride.data.models.Passenger;
@@ -16,7 +16,6 @@ import dean.project.Dride.data.models.Ride;
 import dean.project.Dride.data.models.Status;
 import dean.project.Dride.data.models.User;
 import dean.project.Dride.data.repositories.PassengerRepository;
-import dean.project.Dride.exceptions.DrideException;
 import dean.project.Dride.exceptions.UserNotFoundException;
 import dean.project.Dride.services.cloud.CloudService;
 import dean.project.Dride.services.mocklocation_service.MockLocationService;
@@ -45,8 +44,8 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static dean.project.Dride.data.models.Role.PASSENGER;
-import static dean.project.Dride.utilities.DrideUtilities.NUMBER_OF_ITEMS_PER_PAGE;
-import static dean.project.Dride.utilities.DrideUtilities.USER_SUBJECT;
+import static dean.project.Dride.exceptions.ExceptionMessage.PASSENGER_REG_FAILED;
+import static dean.project.Dride.utilities.Constants.*;
 
 @Service
 @AllArgsConstructor
@@ -73,14 +72,12 @@ public class PassengerServiceImpl implements PassengerService {
 
         if (welcomeMail == null) {
             globalResponse
-                    .message("Registration Failed! Please check your connection and try again later")
-                    //.isSuccess(false)
+                    .message(PASSENGER_REG_FAILED)
                     .build();
         }
-//        return getRegisterResponse(savedPassenger);
         return globalResponse
                 .id(savedPassenger.getId())
-                .message("User Registration Successful")
+                .message(REG_SUCCESS)
                 .build();
     }
 
@@ -102,18 +99,19 @@ public class PassengerServiceImpl implements PassengerService {
         EmailNotificationRequest mailRequest = new EmailNotificationRequest();
         mailRequest.setSubject(USER_SUBJECT);
         mailRequest.getTo().add(new Recipient(user.getName(), user.getEmail()));
-        String message = DrideUtilities.passengerWelcomeMail();
-        String content = String.format(message, user.getName(), DrideUtilities.generateVerificationLink(user.getId()));
-        mailRequest.setHtmlContent(content);
 
+        String message = DrideUtilities.passengerWelcomeMail();
+        String link = DrideUtilities.generateVerificationLink(user.getId());
+        String content = String.format(message, user.getName(), link);
+
+        mailRequest.setHtmlContent(content);
         return mailService.sendHTMLMail(mailRequest);
     }
 
     @Override
     public PassengerDTO getPassengerById(Long passengerId) {
-        final String exception = String.format("Passenger with id %d not found", passengerId);
         Passenger passenger = passengerRepository.findById(passengerId)
-                .orElseThrow(() -> new DrideException(exception));
+                .orElseThrow(UserNotFoundException::new);
         return modelMapper.map(passenger, PassengerDTO.class);
     }
 
@@ -142,7 +140,6 @@ public class PassengerServiceImpl implements PassengerService {
             passengerRepository.save(updatedPassenger);
             return modelMapper.map(foundPassenger, PassengerDTO.class);
         } catch (JsonPatchException e) {
-            //log.error(e.getMessage());
             throw new RuntimeException();
         }
     }
@@ -167,37 +164,29 @@ public class PassengerServiceImpl implements PassengerService {
 
     private Passenger getInnerPassenger(Long id) {
         return passengerRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("Passenger could not be found"));
+                .orElseThrow(UserNotFoundException::new);
     }
 
     @Override
     public GlobalApiResponse attemptBookRide(BookRideRequest bookRideRequest) {
-        //Passenger currentUser = currentPassenger();
-
-        //1. find passenger
         Passenger foundPassenger = getInnerPassenger(bookRideRequest.getPassengerId());
-        if (foundPassenger == null) throw new DrideException(
-                String.format("passenger with id %d not found", bookRideRequest.getPassengerId())
-        );
-        //2. calculate distance between origin and destination
+        if (foundPassenger == null) throw new UserNotFoundException();
+
         var response = mockLocationService.getDistanceInformation(bookRideRequest.getOrigin(), bookRideRequest.getDestination());
         DistanceMatrixElement distanceInformation = response.getRows().get(0).getElements().get(0);
 //               getDistanceInformation(bookRideRequest.getOrigin(), bookRideRequest.getDestination());
-        //3. calculate eta
         String eta = distanceInformation.getDuration().getText();
-        //4. calculate price
+
         BigDecimal fare = DrideUtilities.calculateRideFare(distanceInformation.getDistance().getText());
         return globalResponse
                 .fare(fare)
                 .estimatedTimeOfArrival(eta)
                 .build();
-
     }
-
     @Override
     public PassengerDTO getPassengerByEmail(String email) {
         Passenger passenger = passengerRepository.findPassengerByUser_Email(email)
-                .orElseThrow(() -> new UserNotFoundException("Could not find"));
+                .orElseThrow(UserNotFoundException::new);
         return modelMapper.map(passenger, PassengerDTO.class);
     }
 
@@ -212,10 +201,9 @@ public class PassengerServiceImpl implements PassengerService {
         var response = attemptBookRide(bookRideRequest);
         if (request.getRideStatus() == null || !request.getRideStatus().equals(Status.BOOKED)) {
             return new BookRideResponse<>(globalResponse
-                    .message("Incomplete Ride Booking")
+                    .message(INCOMPLETE)
                     .fare(response.getFare())
                     .estimatedTimeOfArrival(response.getEstimatedTimeOfArrival())
-                    //.isSuccess(false)
                     .build());
         }
 
@@ -238,14 +226,12 @@ public class PassengerServiceImpl implements PassengerService {
     public GlobalApiResponse rateDriver(RateDriverRequest request) {
         Ride ride = rideService.getRideByPassengerIdAndDriverIdRideStatus(
                 request.getPassengerId(), request.getDriverId(), Status.END_RIDE);
-
         ride.setDriverRating(request.getRating());
         rideService.save(ride);
         String driverName = ride.getDriver().getUser().getName();
         String rating = request.getRating().toString();
         return globalResponse
-                .message(String.format("Thank you for your feedback! You have rated %s : %s", driverName, rating))
-                //.isSuccess(true)
+                .message(String.format(RATING, driverName, rating))
                 .build();
     }
 
@@ -267,7 +253,7 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     private String buildDistanceRequestUrl(Location origin, Location destination) {
-        return directionConfig.getGoogleDistanceUrl() + "/" + DrideUtilities.JSON_CONSTANT + "?"
+        return directionConfig.getGoogleDistanceUrl() + "/" + JSON_CONSTANT + "?"
                 + "destinations=" + DrideUtilities.buildLocation(destination) + "&origins="
                 + DrideUtilities.buildLocation(origin) + "&mode=driving" + "&traffic_model=pessimistic"
                 + "&departure_time=" + LocalDateTime.now().toEpochSecond(ZoneOffset.of("+01:00"))

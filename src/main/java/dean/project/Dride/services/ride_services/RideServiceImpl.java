@@ -1,12 +1,12 @@
 package dean.project.Dride.services.ride_services;
 
-import dean.project.Dride.data.dto.response.RideDTO;
-import dean.project.Dride.utilities.Paginate;
 import dean.project.Dride.data.dto.request.AllRideRequest;
+import dean.project.Dride.data.dto.response.entity_dtos.RideDTO;
 import dean.project.Dride.data.models.Ride;
 import dean.project.Dride.data.models.Status;
 import dean.project.Dride.data.repositories.RideRepository;
 import dean.project.Dride.exceptions.DrideException;
+import dean.project.Dride.utilities.Paginate;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -19,7 +19,8 @@ import org.springframework.stereotype.Service;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import static dean.project.Dride.utilities.DrideUtilities.NUMBER_OF_ITEMS_PER_PAGE;
+import static dean.project.Dride.utilities.Constants.NUMBER_OF_ITEMS_PER_PAGE;
+import static dean.project.Dride.utilities.Constants.RIDE_NOT_FOUND;
 
 
 @AllArgsConstructor
@@ -37,14 +38,14 @@ public class RideServiceImpl implements RideService {
     @Override
     public Ride getRideByPassengerIdAndRideStatus(Long passengerId, Status status) {
         return rideRepository.findRideByPassenger_IdAndRideStatus(passengerId, status)
-                .orElseThrow(() -> new DrideException("Ride not found"));
+                .orElseThrow(() -> new DrideException(RIDE_NOT_FOUND));
 
     }
 
     @Override
     public Ride getRideByPassengerIdAndDriverIdRideStatus(Long passengerId, Long driverId, Status status) {
         return rideRepository.findByPassenger_IdAndDriver_IdAndRideStatus(passengerId, driverId, status)
-                .orElseThrow(() -> new DrideException("Ride not found"));
+                .orElseThrow(() -> new DrideException(RIDE_NOT_FOUND));
     }
 
     @Override

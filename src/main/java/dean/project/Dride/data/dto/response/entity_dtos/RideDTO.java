@@ -1,4 +1,4 @@
-package dean.project.Dride.data.dto.response;
+package dean.project.Dride.data.dto.response.entity_dtos;
 
 import dean.project.Dride.data.models.Driver;
 import dean.project.Dride.data.models.Passenger;

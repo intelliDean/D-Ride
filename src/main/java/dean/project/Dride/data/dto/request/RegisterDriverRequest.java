@@ -1,12 +1,12 @@
 package dean.project.Dride.data.dto.request;
 
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import static dean.project.Dride.utilities.Constants.*;
+import static dean.project.Dride.utilities.DriverUrls.*;
 
 
 @AllArgsConstructor
@@ -16,20 +16,23 @@ import org.springframework.web.multipart.MultipartFile;
 @Builder
 public class RegisterDriverRequest {
 
-    @NotNull(message = "field name cannot be null")
-    @NotEmpty(message = "field name cannot be empty")
+    @NotNull(message = CANNOT_BE_NULL)
+    @NotEmpty(message = CANNOT_BE_EMPTY)
     private String name;
 
-    @NotNull(message = "field email cannot be null")
-    @NotEmpty(message = "field email cannot be empty")
-    @Email(message = "must be valid email address")
+    @NotNull(message = CANNOT_BE_NULL)
+    @NotEmpty(message = CANNOT_BE_EMPTY)
+    @Email(message = MUST_BE_VALID_EMAIL)
     private String email;
 
-    @Size(min = 8, max = 20)
+    @Size(min = MIN, max = MAX)
     @NotEmpty
     @NotNull
     private String password;
+    @NotNull
+    @NotBlank
+    private String dateOfBirth;
 
-    @NotNull(message = "please upload license image")
+    @NotNull(message = UPLOAD_LICENSE)
     private MultipartFile licenseImage;
 }

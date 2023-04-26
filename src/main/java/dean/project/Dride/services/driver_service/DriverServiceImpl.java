@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import dean.project.Dride.data.dto.request.*;
-import dean.project.Dride.data.dto.response.DriverDTO;
-import dean.project.Dride.data.dto.response.GlobalApiResponse;
+import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
+import dean.project.Dride.data.dto.response.entity_dtos.DriverDTO;
 import dean.project.Dride.data.models.*;
 import dean.project.Dride.data.repositories.DriverRepository;
 import dean.project.Dride.exceptions.DrideException;
@@ -19,6 +19,7 @@ import dean.project.Dride.utilities.DrideUtilities;
 import dean.project.Dride.utilities.Paginate;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
@@ -28,12 +29,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.Optional;
 
-import static dean.project.Dride.utilities.DrideUtilities.NUMBER_OF_ITEMS_PER_PAGE;
-import static dean.project.Dride.utilities.DrideUtilities.USER_SUBJECT;
+import static dean.project.Dride.exceptions.ExceptionMessage.*;
+import static dean.project.Dride.utilities.Constants.*;
 
 
 @Service
@@ -44,7 +48,6 @@ public class DriverServiceImpl implements DriverService {
     private final DriverRepository driverRepository;
     private final CloudService cloudService;
     private final ModelMapper modelMapper;
-
     private final MailService mailService;
     private final PasswordEncoder passwordEncoder;
     private final RideService rideService;
@@ -52,6 +55,46 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public GlobalApiResponse register(RegisterDriverRequest request) {
+        User user = createUser(request);
+
+        var imageUrl = cloudService.upload(request.getLicenseImage());
+        if (imageUrl == null) throw new ImageUploadException(DRIVER_REG_FAILED);
+
+        Driver driver = new Driver();
+        driver.setUser(user);
+        int age = getAge(request);
+        driver.setAge(age);
+        driver.setLicenseImage(imageUrl);
+        Driver savedDriver = driverRepository.save(driver);
+
+        user = savedDriver.getUser();
+        EmailNotificationRequest emailRequest = buildNotificationRequest(
+                user.getEmail(), user.getName(), user.getId());
+        String response = mailService.sendHTMLMail(emailRequest);
+        if (response == null) {
+            return globalResponse.message(DRIVER_REG_FAILED).build();
+        }
+        return globalResponse
+                .id(savedDriver.getId())
+                .message(REG_SUCCESS)
+                .build();
+    }
+
+    private static int getAge(RegisterDriverRequest request) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_PATTERN);
+        LocalDate dateOfBirth = LocalDate.parse(request.getDateOfBirth(), formatter);
+        LocalDate currentDate = LocalDate.now();
+
+        Period period = Period.between(dateOfBirth, currentDate);
+        int age = period.getYears();
+        if (age < 18) {
+            throw new DrideException(TOO_YOUNG);
+        }
+        return age;
+    }
+
+    @NotNull
+    private User createUser(RegisterDriverRequest request) {
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
@@ -59,29 +102,7 @@ public class DriverServiceImpl implements DriverService {
         user.setCreatedAt(LocalDateTime.now().toString());
         user.setRoles(new HashSet<>());
         user.getRoles().add(Role.DRIVER);
-        //steps
-        //1. upload drivers license image
-
-        var imageUrl = cloudService.upload(request.getLicenseImage());
-        if (imageUrl == null) throw new ImageUploadException("Driver Registration failed");
-        //2. create driver object
-        Driver driver = new Driver();
-        driver.setUser(user);
-        driver.setLicenseImage(imageUrl);
-        //3. save driver
-        Driver savedDriver = driverRepository.save(driver);
-        user = savedDriver.getUser();
-        //4. send verification mail to driver
-        EmailNotificationRequest emailRequest = buildNotificationRequest(
-                user.getEmail(), user.getName(), user.getId());
-        String response = mailService.sendHTMLMail(emailRequest);
-        if (response == null) {
-            return globalResponse.message("Driver Registration Failed").build();
-        }
-        return globalResponse
-                .id(savedDriver.getId())
-                .message("Driver Registration Successful")
-                .build();
+        return user;
     }
 
     private EmailNotificationRequest buildNotificationRequest(String email, String name, Long userId) {
@@ -102,7 +123,7 @@ public class DriverServiceImpl implements DriverService {
     @Override
     public DriverDTO getDriverById(Long driverId) {
         Driver driver = driverRepository.findById(driverId)
-                .orElseThrow(() -> new DrideException("Driver not found"));
+                .orElseThrow(UserNotFoundException::new);
         return modelMapper.map(driver, DriverDTO.class);
     }
 
@@ -122,7 +143,7 @@ public class DriverServiceImpl implements DriverService {
     public DriverDTO updateDriver(Long driverId, JsonPatch jsonPatch) {
         ObjectMapper objectMapper = new ObjectMapper();
         Driver driver = driverRepository.findById(driverId)
-                .orElseThrow(() ->  new UserNotFoundException("Driver could not be found"));
+                .orElseThrow(UserNotFoundException::new);
 
         JsonNode jsonNode = objectMapper.convertValue(driver, JsonNode.class);
         try {
@@ -133,7 +154,7 @@ public class DriverServiceImpl implements DriverService {
             return modelMapper.map(driver, DriverDTO.class);
 
         } catch (JsonPatchException e) {
-            throw new DrideException("Failed to update");
+            throw new DrideException(UPDATE_FAILED);
         }
     }
 
@@ -149,8 +170,8 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public DriverDTO getDriverByEMail(String email) {
-        Driver driver =  driverRepository.findDriverByUser_Email(email)
-                .orElseThrow(() -> new DrideException("not found driver"));
+        Driver driver = driverRepository.findDriverByUser_Email(email)
+                .orElseThrow(UserNotFoundException::new);
         return modelMapper.map(driver, DriverDTO.class);
     }
 
@@ -159,7 +180,7 @@ public class DriverServiceImpl implements DriverService {
         Ride ride = rideService.getRideByPassengerIdAndRideStatus(request.getPassengerId(), Status.BOOKED);
 
         Driver driver = getDriverBy(request.getDriverId())
-                .orElseThrow(() -> new DrideException("Driver not found"));
+                .orElseThrow(UserNotFoundException::new);
 
         ride.setDriver(driver);
         ride.setRideStatus(Status.ACCEPTED);
@@ -183,7 +204,7 @@ public class DriverServiceImpl implements DriverService {
         rideService.save(ride);
 
         return globalResponse
-                .message("Ride started successfully")
+                .message(RIDE_STARTED)
                 .build();
     }
 
@@ -199,7 +220,7 @@ public class DriverServiceImpl implements DriverService {
 
         rideService.save(ride);
         return globalResponse
-                .message("Trip ended")
+                .message(RIDE_ENDED)
                 .fare(ride.getFare())   //todo: I should call google Api to calculate the eventual fare
                 .build();
     }

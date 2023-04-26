@@ -1,6 +1,7 @@
-package dean.project.Dride.data.dto.response;
+package dean.project.Dride.data.dto.response.entity_dtos;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import dean.project.Dride.data.models.Gender;
 import dean.project.Dride.data.models.User;
 import lombok.*;
 
@@ -9,8 +10,9 @@ import lombok.*;
 @Getter
 @Setter
 @Builder
-public class AdminDTO {
+public class PassengerDTO {
     @JsonUnwrapped
     private User user;
-    private String employeeId;
+    private String phoneNumber;
+    private Gender gender;
 }

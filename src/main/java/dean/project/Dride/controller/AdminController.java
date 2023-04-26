@@ -2,9 +2,8 @@ package dean.project.Dride.controller;
 
 import dean.project.Dride.data.dto.request.AdminDetailsRequest;
 import dean.project.Dride.data.dto.request.InviteAdminRequest;
-import dean.project.Dride.data.dto.response.AdminDTO;
-import dean.project.Dride.data.dto.response.GlobalApiResponse;
-import dean.project.Dride.data.models.Admin;
+import dean.project.Dride.data.dto.response.entity_dtos.AdminDTO;
+import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
 import dean.project.Dride.services.admin_service.AdminService;
 import dean.project.Dride.services.notification.MailService;
 import dean.project.Dride.utilities.Paginate;
@@ -14,9 +13,11 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import static dean.project.Dride.utilities.AdminUrls.*;
+
 @AllArgsConstructor
 @RestController
-@RequestMapping("/api/v1/admin")
+@RequestMapping(ADMIN_BASE_URL)
 public class AdminController {
     public final AdminService adminService;
     private final MailService mailService;
@@ -30,13 +31,15 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/details")
+
+
+    @PostMapping(ADMIN_DETAILS)
     public ResponseEntity<AdminDTO> adminDetails(@RequestBody AdminDetailsRequest request) {
         AdminDTO admin = adminService.adminDetails(request);
         return ResponseEntity.ok(admin);
     }
 
-    @GetMapping("getAdmin")
+    @GetMapping(GET_ADMIN)
 //    @Secured(value ="ADMINISTRATOR")
     public ResponseEntity<AdminDTO> getAdminByMail(@RequestBody String email) {
         AdminDTO admin = adminService.getAdminByEmail(email);
@@ -50,7 +53,7 @@ public class AdminController {
         return ResponseEntity.ok(admin);
     }
 
-    @GetMapping("/all")
+    @GetMapping(ALL_ADMINS)
     //@Secured(value ="ADMINISTRATOR")
     public ResponseEntity<Paginate<AdminDTO>> getAllAdmins(@RequestParam int pageNumber) {
         Paginate<AdminDTO> admin = adminService.getAllAdmins(pageNumber);

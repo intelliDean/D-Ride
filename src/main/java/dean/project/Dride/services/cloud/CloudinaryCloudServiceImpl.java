@@ -11,6 +11,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Map;
 
+import static dean.project.Dride.utilities.Constants.URL;
+
 @Service
 @AllArgsConstructor
 @Slf4j
@@ -23,7 +25,7 @@ public class CloudinaryCloudServiceImpl implements CloudService{
         try {
             Map<?, ?> response =
                     cloudinary.uploader().upload(image.getBytes(), ObjectUtils.emptyMap());
-            return response.get("url").toString();
+            return response.get(URL).toString();
         } catch (IOException e) {
             throw new ImageUploadException(e.getMessage());
         }

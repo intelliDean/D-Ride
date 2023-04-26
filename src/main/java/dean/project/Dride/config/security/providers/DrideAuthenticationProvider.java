@@ -11,6 +11,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import static dean.project.Dride.utilities.SecurityUrls.INCORRECT_CREDENTIALS;
+
 @Component
 @AllArgsConstructor
 public class DrideAuthenticationProvider implements AuthenticationProvider {
@@ -32,7 +34,7 @@ public class DrideAuthenticationProvider implements AuthenticationProvider {
                     userDetails.getPassword(),
                     userDetails.getAuthorities());
 
-        throw new BadCredentialsException("incorrect username or password");
+        throw new BadCredentialsException(INCORRECT_CREDENTIALS);
     }
 
     @Override

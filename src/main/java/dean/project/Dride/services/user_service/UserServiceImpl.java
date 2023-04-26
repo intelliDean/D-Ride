@@ -1,8 +1,8 @@
 package dean.project.Dride.services.user_service;
 
 import dean.project.Dride.config.security.users.AuthenticatedUser;
-import dean.project.Dride.data.dto.response.GlobalApiResponse;
-import dean.project.Dride.data.dto.response.UserDTO;
+import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
+import dean.project.Dride.data.dto.response.entity_dtos.UserDTO;
 import dean.project.Dride.data.models.Admin;
 import dean.project.Dride.data.models.Driver;
 import dean.project.Dride.data.models.Passenger;
@@ -23,14 +23,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.lang.reflect.Type;
 import java.util.Optional;
 
-import static dean.project.Dride.utilities.DrideUtilities.NUMBER_OF_ITEMS_PER_PAGE;
+import static dean.project.Dride.utilities.Constants.*;
 
 
 @Service
@@ -47,22 +46,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public GlobalApiResponse uploadProfileImage(MultipartFile profileImage, Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User could not be found"));
-
+                .orElseThrow(UserNotFoundException::new);
         String imageUrl = cloudService.upload(profileImage);
-        if (imageUrl.isEmpty()) {
-            throw new DrideException("Image upload failed");
-        }
-
+        if (imageUrl.isEmpty()) throw new DrideException(UPLOAD_FAILED);
         user.setProfileImage(imageUrl);
         userRepository.save(user);
         return globalResponse
-                .message("SUCCESS")
+                .message(SUCCESS)
                 .build();
     }
 
     private UserRecord getUserRecord(Long appUserId) {
-        if (!userRepository.existsById(appUserId)) throw new DrideException("User does not exist");
+        if (!userRepository.existsById(appUserId))
+            throw new UserNotFoundException(USER_NOT_EXIST);
 
         Optional<Driver> driver = Optional.empty();
         Optional<Admin> admin = Optional.empty();
@@ -72,7 +68,7 @@ public class UserServiceImpl implements UserService {
             if (driver.isEmpty()) {
                 admin = adminService.getAdminByUserId(appUserId);
                 if (admin.isEmpty()) {
-                    throw new DrideException("User could not be found");
+                    throw new UserNotFoundException();
                 }
             }
         }
@@ -87,12 +83,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public GlobalApiResponse verifyAccount(Long userId, String token) {
-        if (DrideUtilities.isTokenSigned(token)) {
+        if (DrideUtilities.isTokenSigned(token))
             return getVerifiedResponse(userId);
-        }
-        throw new DrideException(
-                String.format("account verification for user with %d failed", userId)
-        );
+        throw new DrideException(String.format(VERIFY_FAILED, userId));
     }
 
     private GlobalApiResponse getVerifiedResponse(Long userId) {
@@ -101,7 +94,7 @@ public class UserServiceImpl implements UserService {
         userRecord.passenger.ifPresent(this::enablePassengerAccount);
         userRecord.admin.ifPresent(this::enableAdminAccount);
         return globalResponse
-                .message("SUCCESS")
+                .message(SUCCESS)
                 .build();
     }
 
@@ -119,29 +112,23 @@ public class UserServiceImpl implements UserService {
         admin.getUser().setIsEnabled(true);
         adminService.saveAdmin(admin);
     }
-
     @Override
     public UserDTO getByEmail(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new UsernameNotFoundException("user with email not found"));
+                .orElseThrow(UserNotFoundException::new);
         return modelMapper.map(user, UserDTO.class);
     }
-
     @Override
     public User getInnerUserByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(()-> new UsernameNotFoundException("user with email not found"));
+                .orElseThrow(UserNotFoundException::new);
     }
-
     @Override
     public UserDTO getByUserId(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() ->
-                        new UsernameNotFoundException("user could not be found"));
+                .orElseThrow(UserNotFoundException::new);
         return modelMapper.map(user, UserDTO.class);
     }
-
     @Override
     public Paginate<UserDTO> getAllUsers(int pageNumber) {
         if (pageNumber < 0) pageNumber = 0;
@@ -153,7 +140,6 @@ public class UserServiceImpl implements UserService {
         }.getType();
         return modelMapper.map(users, paginatedUsers);
     }
-
     @Override
     public String CurrentAppUser() {
         try {

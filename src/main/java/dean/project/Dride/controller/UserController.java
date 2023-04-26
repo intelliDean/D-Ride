@@ -1,9 +1,8 @@
 package dean.project.Dride.controller;
 
 
-import dean.project.Dride.data.dto.response.GlobalApiResponse;
-import dean.project.Dride.data.dto.response.UserDTO;
-import dean.project.Dride.data.models.User;
+import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
+import dean.project.Dride.data.dto.response.entity_dtos.UserDTO;
 import dean.project.Dride.exceptions.DrideException;
 import dean.project.Dride.services.user_service.UserService;
 import dean.project.Dride.utilities.Paginate;
@@ -12,18 +11,19 @@ import io.swagger.v3.oas.annotations.Parameter;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import static dean.project.Dride.utilities.UserUrls.*;
+
 @RestController
-@RequestMapping("/api/v1/user")
+@RequestMapping(USER_BASE_URL)
 @AllArgsConstructor
 public class UserController {
     private final UserService userService;
     private final GlobalApiResponse.GlobalApiResponseBuilder globalResponse;
 
-    @PostMapping(value = "/upload/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = UPLOAD_IMAGE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "To upload any user profile picture")
     //@Secured(value = {"ADMINISTRATOR", "PASSENGER", "DRIVER"})
     public ResponseEntity<GlobalApiResponse> uploadProfileImage(
@@ -44,7 +44,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/account/verify")
+    @PostMapping(VERIFY_ACCOUNT)
     @Operation(summary = "to verify the user before enabling their account")
     public ResponseEntity<GlobalApiResponse> verifyAccount(
             @Parameter(name = "userId", description = "The  is of the whose account is to be verified", required = true)
@@ -64,7 +64,7 @@ public class UserController {
         }
     }
 
-    @GetMapping("{userId}")
+    @GetMapping(USER_ID)
     @Operation(summary = "To get a user by user Id")
     //@Secured(value = {"ADMINISTRATOR", "PASSENGER", "DRIVER"})
     public ResponseEntity<UserDTO> getUserById(
@@ -75,7 +75,7 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @GetMapping("mail")
+    @GetMapping(GET_USER_BY_MAIL)
     @Operation(summary = "To get a user by user email")
     public ResponseEntity<UserDTO> getUserByEmail(
             @Parameter(name = "email", description = "The email of the user to get", required = true)
@@ -94,8 +94,8 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-    @GetMapping("current")
-    @Secured(value ={"ADMINISTRATOR", "PASSENGER", "DRIVER"})
+    @GetMapping(CURRENT_USER)
+    //@Secured(value ={"ADMINISTRATOR", "PASSENGER", "DRIVER"})
     public ResponseEntity<?> getCurrentUser() {
         var user = userService.CurrentAppUser();
         return ResponseEntity.ok(user);

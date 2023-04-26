@@ -1,10 +1,10 @@
 package dean.project.Dride.services.admin_service;
 
-import dean.project.Dride.data.dto.response.AdminDTO;
+import dean.project.Dride.data.dto.response.entity_dtos.AdminDTO;
 import dean.project.Dride.utilities.Paginate;
 import dean.project.Dride.data.dto.request.AdminDetailsRequest;
 import dean.project.Dride.data.dto.request.InviteAdminRequest;
-import dean.project.Dride.data.dto.response.GlobalApiResponse;
+import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
 import dean.project.Dride.data.models.Admin;
 
 import java.util.Optional;

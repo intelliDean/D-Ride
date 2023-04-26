@@ -1,7 +1,7 @@
 package dean.project.Dride.services.ride_services;
 
 
-import dean.project.Dride.data.dto.response.RideDTO;
+import dean.project.Dride.data.dto.response.entity_dtos.RideDTO;
 import dean.project.Dride.utilities.Paginate;
 import dean.project.Dride.data.dto.request.AllRideRequest;
 import dean.project.Dride.data.models.Ride;

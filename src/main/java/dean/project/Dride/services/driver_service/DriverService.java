@@ -5,8 +5,8 @@ import dean.project.Dride.data.dto.request.AcceptRideRequest;
 import dean.project.Dride.data.dto.request.EndRideRequest;
 import dean.project.Dride.data.dto.request.RegisterDriverRequest;
 import dean.project.Dride.data.dto.request.StartRideRequest;
-import dean.project.Dride.data.dto.response.DriverDTO;
-import dean.project.Dride.data.dto.response.GlobalApiResponse;
+import dean.project.Dride.data.dto.response.entity_dtos.DriverDTO;
+import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
 import dean.project.Dride.data.models.Driver;
 import dean.project.Dride.utilities.Paginate;
 

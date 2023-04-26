@@ -1,4 +1,4 @@
-package dean.project.Dride.data.dto.response;
+package dean.project.Dride.data.dto.response.api_response;
 
 
 import com.fasterxml.jackson.annotation.JsonInclude;

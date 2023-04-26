@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import static dean.project.Dride.exceptions.ExceptionMessage.USER_NOT_FOUND;
+import static dean.project.Dride.utilities.Constants.API_KEY;
+
 
 @Service
 @AllArgsConstructor
@@ -28,7 +31,7 @@ public class MailServiceImpl implements MailService {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("api-key", apiKey);
+        headers.set(API_KEY, apiKey);
 
         return webClient.post()
                 .uri(url)
@@ -64,7 +67,7 @@ public class MailServiceImpl implements MailService {
         if (user != null) {
             return user.getName();
         } else {
-            return "User could not be found";
+            return USER_NOT_FOUND;
         }
     }
 }

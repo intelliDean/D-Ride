@@ -6,13 +6,15 @@ import lombok.*;
 
 import java.util.Set;
 
+import static dean.project.Dride.utilities.UserUrls.USERS;
+
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @Builder
-@Table(name = "users")      //TODO: in order to override mysql default user
+@Table(name = USERS)
 public class User {
     @JsonIgnore
     @Id

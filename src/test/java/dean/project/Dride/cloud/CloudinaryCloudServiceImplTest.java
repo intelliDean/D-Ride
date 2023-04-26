@@ -11,7 +11,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-import static dean.project.Dride.utilities.DrideUtilities.UBER_DELUXE_TEST_IMAGE;
+import static dean.project.Dride.utilities.Constants.UBER_DELUXE_TEST_IMAGE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest

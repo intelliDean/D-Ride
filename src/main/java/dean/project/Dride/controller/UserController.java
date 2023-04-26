@@ -1,7 +1,8 @@
 package dean.project.Dride.controller;
 
 
-import dean.project.Dride.data.dto.response.ApiResponse;
+import dean.project.Dride.data.dto.response.GlobalApiResponse;
+import dean.project.Dride.data.dto.response.UserDTO;
 import dean.project.Dride.data.models.User;
 import dean.project.Dride.exceptions.DrideException;
 import dean.project.Dride.services.user_service.UserService;
@@ -20,22 +21,23 @@ import org.springframework.web.multipart.MultipartFile;
 @AllArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final GlobalApiResponse.GlobalApiResponseBuilder globalResponse;
 
     @PostMapping(value = "/upload/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "To upload any user profile picture")
-    @Secured(value = {"ADMINISTRATOR", "PASSENGER", "DRIVER"})
-    public ResponseEntity<?> uploadProfileImage(
+    //@Secured(value = {"ADMINISTRATOR", "PASSENGER", "DRIVER"})
+    public ResponseEntity<GlobalApiResponse> uploadProfileImage(
             @Parameter(name = "file", description = "The file to upload", required = true)
             @RequestParam(value = "file") MultipartFile file,
             @Parameter(name = "userId", description = "The Id of the user who file is to be uploaded", required = true)
             @PathVariable Long userId) {
 
         try {
-            ApiResponse response = userService.uploadProfileImage(file, userId);
+            GlobalApiResponse response = userService.uploadProfileImage(file, userId);
             return ResponseEntity.ok(response);
         } catch (DrideException exception) {
             return ResponseEntity.badRequest().body(
-                    ApiResponse.builder()
+                    globalResponse
                             .message(exception.getMessage())
                             .build()
             );
@@ -44,7 +46,7 @@ public class UserController {
 
     @PostMapping("/account/verify")
     @Operation(summary = "to verify the user before enabling their account")
-    public ResponseEntity<?> verifyAccount(
+    public ResponseEntity<GlobalApiResponse> verifyAccount(
             @Parameter(name = "userId", description = "The  is of the whose account is to be verified", required = true)
             @RequestParam Long userId,
             @Parameter(name = "token", description = "The token sent to the user via email after registration", required = true)
@@ -55,7 +57,7 @@ public class UserController {
             return ResponseEntity.ok(response);
         } catch (DrideException exception) {
             return ResponseEntity.badRequest().body(
-                    ApiResponse.builder()
+                    globalResponse
                             .message(exception.getMessage())
                             .build()
             );
@@ -64,31 +66,31 @@ public class UserController {
 
     @GetMapping("{userId}")
     @Operation(summary = "To get a user by user Id")
-    @Secured(value = {"ADMINISTRATOR", "PASSENGER", "DRIVER"})
-    public ResponseEntity<User> getUserById(
+    //@Secured(value = {"ADMINISTRATOR", "PASSENGER", "DRIVER"})
+    public ResponseEntity<UserDTO> getUserById(
             @Parameter(name = "userId", description = "The Id of the user to get", required = true)
             @PathVariable Long userId) {
 
-        User user = userService.getByUserId(userId);
+        UserDTO user = userService.getByUserId(userId);
         return ResponseEntity.ok(user);
     }
 
     @GetMapping("mail")
     @Operation(summary = "To get a user by user email")
-    public ResponseEntity<User> getUserByEmail(
+    public ResponseEntity<UserDTO> getUserByEmail(
             @Parameter(name = "email", description = "The email of the user to get", required = true)
             @RequestParam String email) {
-        User user = userService.getByEmail(email);
+        UserDTO user = userService.getByEmail(email);
         return ResponseEntity.ok(user);
     }
 
     @GetMapping
     @Operation(summary = "To get all users in the database")
-    @Secured(value ="ADMINISTRATOR")
-    public ResponseEntity<Paginate<User>> getAllUsers(
+    //@Secured(value ="ADMINISTRATOR")
+    public ResponseEntity<Paginate<UserDTO>> getAllUsers(
             @Parameter(name = "pageNumber", description = "The page number you want to view")
             @RequestParam int pageNumber) {
-        Paginate<User> users = userService.getAllUsers(pageNumber);
+        Paginate<UserDTO> users = userService.getAllUsers(pageNumber);
         return ResponseEntity.ok(users);
     }
 

@@ -3,7 +3,7 @@ package dean.project.Dride.config.security.filters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dean.project.Dride.config.security.util.JwtUtil;
-import dean.project.Dride.data.dto.response.ApiResponse;
+import dean.project.Dride.data.dto.response.GlobalApiResponse;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -67,7 +67,7 @@ public class DrideAuthorizationFilter extends OncePerRequestFilter {
                 } else {
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                     mapper.writeValue(response.getOutputStream(),
-                            ApiResponse.builder()
+                            GlobalApiResponse.builder()
                                     .message("Authentication not successful")
                                     .build());
                 }

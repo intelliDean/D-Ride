@@ -1,8 +1,8 @@
 package dean.project.Dride.services.user_service;
 
-import dean.project.Dride.utilities.Paginate;
 import dean.project.Dride.config.security.users.AuthenticatedUser;
-import dean.project.Dride.data.dto.response.ApiResponse;
+import dean.project.Dride.data.dto.response.GlobalApiResponse;
+import dean.project.Dride.data.dto.response.UserDTO;
 import dean.project.Dride.data.models.Admin;
 import dean.project.Dride.data.models.Driver;
 import dean.project.Dride.data.models.Passenger;
@@ -15,6 +15,7 @@ import dean.project.Dride.services.cloud.CloudService;
 import dean.project.Dride.services.driver_service.DriverService;
 import dean.project.Dride.services.passenger_service.PassengerService;
 import dean.project.Dride.utilities.DrideUtilities;
+import dean.project.Dride.utilities.Paginate;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -41,10 +42,12 @@ public class UserServiceImpl implements UserService {
     private final AdminService adminService;
     private final ModelMapper modelMapper;
     private final UserRepository userRepository;
+    private final GlobalApiResponse.GlobalApiResponseBuilder globalResponse;
 
     @Override
-    public ApiResponse uploadProfileImage(MultipartFile profileImage, Long appUserId) {
-        User user = getByUserId(appUserId);
+    public GlobalApiResponse uploadProfileImage(MultipartFile profileImage, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User could not be found"));
 
         String imageUrl = cloudService.upload(profileImage);
         if (imageUrl.isEmpty()) {
@@ -53,10 +56,11 @@ public class UserServiceImpl implements UserService {
 
         user.setProfileImage(imageUrl);
         userRepository.save(user);
-        return ApiResponse.builder()
+        return globalResponse
                 .message("SUCCESS")
                 .build();
     }
+
     private UserRecord getUserRecord(Long appUserId) {
         if (!userRepository.existsById(appUserId)) throw new DrideException("User does not exist");
 
@@ -75,17 +79,14 @@ public class UserServiceImpl implements UserService {
         return new UserRecord(driver, admin, passenger);
     }
 
-    private record UserRecord(      //TODO: I created a record of UserRecord instead of a concrete class
+    private record UserRecord(
             Optional<Driver> driver,
             Optional<Admin> admin,
             Optional<Passenger> passenger) {
     }
 
     @Override
-    public ApiResponse verifyAccount(Long userId, String token) {
-        //TODO: To get verified, the jwt in the link sent will be checked if signed and not expired
-        //TODO: the userId in the link sent will be checked if existed in db
-        //TODO: if these conditions are met, then the account will be verified and enabled
+    public GlobalApiResponse verifyAccount(Long userId, String token) {
         if (DrideUtilities.isTokenSigned(token)) {
             return getVerifiedResponse(userId);
         }
@@ -94,12 +95,12 @@ public class UserServiceImpl implements UserService {
         );
     }
 
-    private ApiResponse getVerifiedResponse(Long userId) {
+    private GlobalApiResponse getVerifiedResponse(Long userId) {
         UserRecord userRecord = getUserRecord(userId);
         userRecord.driver.ifPresent(this::enableDriverAccount);
         userRecord.passenger.ifPresent(this::enablePassengerAccount);
         userRecord.admin.ifPresent(this::enableAdminAccount);
-        return ApiResponse.builder()
+        return globalResponse
                 .message("SUCCESS")
                 .build();
     }
@@ -113,33 +114,42 @@ public class UserServiceImpl implements UserService {
         driver.getUser().setIsEnabled(true);
         driverService.saveDriver(driver);
     }
+
     private void enableAdminAccount(Admin admin) {
         admin.getUser().setIsEnabled(true);
         adminService.saveAdmin(admin);
     }
 
     @Override
-    public User getByEmail(String email) {
-        return userRepository.findByEmail(email)
+    public UserDTO getByEmail(String email) {
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new UsernameNotFoundException("user with email not found"));
+        return modelMapper.map(user, UserDTO.class);
     }
 
     @Override
-    public User getByUserId(Long userId) {
-        return userRepository.findById(userId)
+    public User getInnerUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(()-> new UsernameNotFoundException("user with email not found"));
+    }
+
+    @Override
+    public UserDTO getByUserId(Long userId) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() ->
                         new UsernameNotFoundException("user could not be found"));
+        return modelMapper.map(user, UserDTO.class);
     }
 
     @Override
-    public Paginate<User> getAllUsers(int pageNumber) {
+    public Paginate<UserDTO> getAllUsers(int pageNumber) {
         if (pageNumber < 0) pageNumber = 0;
         else pageNumber -= 1;
 
         Pageable pageable = PageRequest.of(pageNumber, NUMBER_OF_ITEMS_PER_PAGE);
         Page<User> users = userRepository.findAll(pageable);
-        Type paginatedUsers = new TypeToken<Paginate<User>>() {
+        Type paginatedUsers = new TypeToken<Paginate<UserDTO>>() {
         }.getType();
         return modelMapper.map(users, paginatedUsers);
     }
@@ -147,12 +157,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public String CurrentAppUser() {
         try {
-            AuthenticatedUser user  = (AuthenticatedUser) SecurityContextHolder
+            AuthenticatedUser user = (AuthenticatedUser) SecurityContextHolder
                     .getContext()
                     .getAuthentication()
                     .getPrincipal();
 
-            return user+" nothing is here";
+            return user + " nothing is here";
         } catch (Exception e) {
             throw new UserNotFoundException(e.getMessage());
         }

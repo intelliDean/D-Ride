@@ -1,5 +1,6 @@
 package dean.project.Dride.services.ride_services;
 
+import dean.project.Dride.data.dto.response.RideDTO;
 import dean.project.Dride.utilities.Paginate;
 import dean.project.Dride.data.dto.request.AllRideRequest;
 import dean.project.Dride.data.models.Ride;
@@ -37,6 +38,7 @@ public class RideServiceImpl implements RideService {
     public Ride getRideByPassengerIdAndRideStatus(Long passengerId, Status status) {
         return rideRepository.findRideByPassenger_IdAndRideStatus(passengerId, status)
                 .orElseThrow(() -> new DrideException("Ride not found"));
+
     }
 
     @Override
@@ -46,19 +48,19 @@ public class RideServiceImpl implements RideService {
     }
 
     @Override
-    public Paginate<Ride> getAllRides(int pageNumber) {
+    public Paginate<RideDTO> getAllRides(int pageNumber) {
         if (pageNumber < 0) pageNumber = 0;
         else pageNumber -= 1;
 
         Pageable pageable = PageRequest.of(pageNumber, NUMBER_OF_ITEMS_PER_PAGE);
         Page<Ride> rides = rideRepository.findAll(pageable);
-        Type paginatedRide = new TypeToken<Paginate<Ride>>() {
+        Type paginatedRide = new TypeToken<Paginate<RideDTO>>() {
         }.getType();
         return modelMapper.map(rides, paginatedRide);
     }
 
     @Override
-    public Paginate<Ride> getAllRidesByDriver(Long driverId, int pageNumber) {
+    public Paginate<RideDTO> getAllRidesByDriver(Long driverId, int pageNumber) {
         if (pageNumber < 0) pageNumber = 0;
         else pageNumber -= 1;
 
@@ -67,7 +69,7 @@ public class RideServiceImpl implements RideService {
     }
 
     @Override
-    public Paginate<Ride> getAllRidesByPassenger(Long passengerId, int pageNumber) {
+    public Paginate<RideDTO> getAllRidesByPassenger(Long passengerId, int pageNumber) {
         if (pageNumber < 0) pageNumber = 0;
         else pageNumber -= 1;
 
@@ -76,7 +78,7 @@ public class RideServiceImpl implements RideService {
     }
 
     @Override
-    public Paginate<Ride> getAllRidesByPassengerAndDriver(AllRideRequest request) {
+    public Paginate<RideDTO> getAllRidesByPassengerAndDriver(AllRideRequest request) {
         if (request.getPageNumber() < 0) request.setPageNumber(0);
         else request.setPageNumber(request.getPageNumber() - 1);
 
@@ -86,10 +88,10 @@ public class RideServiceImpl implements RideService {
         return getPaginatedRide(request.getPageNumber(), bothRides);
     }
 
-    private Paginate<Ride> getPaginatedRide(int pageNumber, List<Ride> ridesList) {
+    private Paginate<RideDTO> getPaginatedRide(int pageNumber, List<Ride> ridesList) {
         Pageable pageable = PageRequest.of(pageNumber, NUMBER_OF_ITEMS_PER_PAGE);
         Page<Ride> rides = new PageImpl<>(ridesList, pageable, ridesList.size());
-        Type paginatedRide = new TypeToken<Paginate<Ride>>() {
+        Type paginatedRide = new TypeToken<Paginate<RideDTO>>() {
         }.getType();
         return modelMapper.map(rides, paginatedRide);
     }

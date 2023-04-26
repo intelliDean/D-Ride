@@ -1,11 +1,11 @@
 package dean.project.Dride.services.admin_service;
 
-import dean.project.Dride.utilities.Paginate;
 import dean.project.Dride.data.dto.request.AdminDetailsRequest;
 import dean.project.Dride.data.dto.request.EmailNotificationRequest;
 import dean.project.Dride.data.dto.request.InviteAdminRequest;
 import dean.project.Dride.data.dto.request.Recipient;
-import dean.project.Dride.data.dto.response.ApiResponse;
+import dean.project.Dride.data.dto.response.AdminDTO;
+import dean.project.Dride.data.dto.response.GlobalApiResponse;
 import dean.project.Dride.data.models.Admin;
 import dean.project.Dride.data.models.User;
 import dean.project.Dride.data.repositories.AdminRepository;
@@ -13,6 +13,7 @@ import dean.project.Dride.exceptions.DrideException;
 import dean.project.Dride.exceptions.UserNotFoundException;
 import dean.project.Dride.services.notification.MailService;
 import dean.project.Dride.utilities.DrideUtilities;
+import dean.project.Dride.utilities.Paginate;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -39,9 +40,10 @@ public class AdminServiceImpl implements AdminService {
     private final MailService mailService;
     private final PasswordEncoder encoder;
     private final ModelMapper modelMapper;
+    private final GlobalApiResponse.GlobalApiResponseBuilder globalResponse;
 
     @Override
-    public ApiResponse sendInviteRequests(InviteAdminRequest invitation) {
+    public GlobalApiResponse sendInviteRequests(InviteAdminRequest invitation) {
 
         EmailNotificationRequest request = new EmailNotificationRequest();
         Admin admin = createAdminProfile(invitation);
@@ -56,15 +58,17 @@ public class AdminServiceImpl implements AdminService {
         request.setHtmlContent(String.format(adminMail, adminName, DrideUtilities.generateVerificationLink(userId)));
         var response = mailService.sendHTMLMail(request);
         if (response != null) {
-            return ApiResponse.builder()
-                    .message("invite requests sent to admin with id: "+admin.getId())
+            return globalResponse
+                    .message("invite requests sent to admin with id: " + admin.getId())
                     .build();
         }
         throw new DrideException("Invitation request sending failed");
     }
+
     @Override
-    public Admin adminDetails(AdminDetailsRequest adminDetails) {
-        Admin admin = getAdminById(adminDetails.getAdminId());
+    public AdminDTO adminDetails(AdminDetailsRequest adminDetails) {
+        Admin admin = adminRepository.findById(adminDetails.getAdminId())
+                .orElseThrow(() -> new UserNotFoundException("User could not be found"));
         admin.setEmployeeId(generateEmployeeId(admin));
 
         User user = admin.getUser();
@@ -72,7 +76,8 @@ public class AdminServiceImpl implements AdminService {
         user.getRoles().add(ADMINISTRATOR);
         user.setPassword(encoder.encode(adminDetails.getPassword()));
 
-        return adminRepository.save(admin);
+        admin = adminRepository.save(admin);
+        return modelMapper.map(admin, AdminDTO.class);
     }
 
     private String generateEmployeeId(Admin admin) {
@@ -88,9 +93,10 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public Admin getAdminById(Long adminId) {
-        return adminRepository.findById(adminId)
-                .orElseThrow(()-> new UserNotFoundException("Admin could not be found"));
+    public AdminDTO getAdminById(Long adminId) {
+        Admin admin = adminRepository.findById(adminId)
+                .orElseThrow(() -> new UserNotFoundException("Admin could not be found"));
+        return modelMapper.map(admin, AdminDTO.class);
     }
 
     @Override
@@ -99,26 +105,29 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public Paginate<Admin> getAllAdmins(int pageNumber) {
+    public Paginate<AdminDTO> getAllAdmins(int pageNumber) {
         if (pageNumber < 0) pageNumber = 0;
         else pageNumber -= 1;
 
         Pageable pageable = PageRequest.of(pageNumber, NUMBER_OF_ITEMS_PER_PAGE);
         Page<Admin> admin = adminRepository.findAll(pageable);
-         Type type = new TypeToken<Paginate<Admin>>(){}.getType();
+        Type type = new TypeToken<Paginate<AdminDTO>>() {
+        }.getType();
         return modelMapper.map(admin, type);
     }
 
     @Override
-    public Admin getAdminByEmail(String email) {
-        return adminRepository.findAdminByUser_Email(email)
+    public AdminDTO getAdminByEmail(String email) {
+        Admin admin = adminRepository.findAdminByUser_Email(email)
                 .orElseThrow(() -> new UserNotFoundException("Admin not found"));
+        return modelMapper.map(admin, AdminDTO.class);
     }
 
     @Override
     public Optional<Admin> getAdminByUserId(Long userId) {
         return adminRepository.findAdminByUser_Id(userId);
     }
+
     private Admin createAdminProfile(InviteAdminRequest invitation) {
         User user = User.builder()
                 .email(invitation.getEmail())

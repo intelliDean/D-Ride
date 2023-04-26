@@ -4,10 +4,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
-import dean.project.Dride.utilities.Paginate;
 import dean.project.Dride.config.distance.DistanceConfig;
 import dean.project.Dride.data.dto.request.*;
-import dean.project.Dride.data.dto.response.*;
+import dean.project.Dride.data.dto.response.BookRideResponse;
+import dean.project.Dride.data.dto.response.GlobalApiResponse;
+import dean.project.Dride.data.dto.response.PassengerDTO;
+import dean.project.Dride.data.dto.response.google_dtos.DistanceMatrixElement;
+import dean.project.Dride.data.dto.response.google_dtos.GoogleDistanceResponse;
 import dean.project.Dride.data.models.Passenger;
 import dean.project.Dride.data.models.Ride;
 import dean.project.Dride.data.models.Status;
@@ -20,6 +23,7 @@ import dean.project.Dride.services.mocklocation_service.MockLocationService;
 import dean.project.Dride.services.notification.MailService;
 import dean.project.Dride.services.ride_services.RideService;
 import dean.project.Dride.utilities.DrideUtilities;
+import dean.project.Dride.utilities.Paginate;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -56,10 +60,11 @@ public class PassengerServiceImpl implements PassengerService {
     private final DistanceConfig directionConfig;
     private final RideService rideService;
     private final MailService mailService;
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
+    private final GlobalApiResponse.GlobalApiResponseBuilder globalResponse;
 
     @Override
-    public RegisterResponse register(RegisterPassengerRequest registerRequest) {
+    public GlobalApiResponse register(RegisterPassengerRequest registerRequest) {
 
         Passenger passenger = createPassenger(registerRequest);
         Passenger savedPassenger = passengerRepository.save(passenger);
@@ -67,13 +72,18 @@ public class PassengerServiceImpl implements PassengerService {
         String welcomeMail = sendWelcomeMail(savedPassenger);
 
         if (welcomeMail == null) {
-            RegisterResponse.builder()
+            globalResponse
                     .message("Registration Failed! Please check your connection and try again later")
-                    .isSuccess(false)
+                    //.isSuccess(false)
                     .build();
         }
-        return getRegisterResponse(savedPassenger);
+//        return getRegisterResponse(savedPassenger);
+        return globalResponse
+                .id(savedPassenger.getId())
+                .message("User Registration Successful")
+                .build();
     }
+
     private Passenger createPassenger(RegisterPassengerRequest registerRequest) {
         User user = new User();
         user.setName(registerRequest.getName());
@@ -100,10 +110,11 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     @Override
-    public Passenger getPassengerById(Long passengerId) {
+    public PassengerDTO getPassengerById(Long passengerId) {
         final String exception = String.format("Passenger with id %d not found", passengerId);
-        return passengerRepository.findById(passengerId)
+        Passenger passenger = passengerRepository.findById(passengerId)
                 .orElseThrow(() -> new DrideException(exception));
+        return modelMapper.map(passenger, PassengerDTO.class);
     }
 
     @Override
@@ -117,9 +128,9 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     @Override
-    public Passenger updatePassenger(Long passengerId, JsonPatch updatePayload) {
+    public PassengerDTO updatePassenger(Long passengerId, JsonPatch updatePayload) {
         ObjectMapper mapper = new ObjectMapper();
-        Passenger foundPassenger = getPassengerById(passengerId);
+        Passenger foundPassenger = getInnerPassenger(passengerId);
         //Passenger Object to node
         JsonNode node = mapper.convertValue(foundPassenger, JsonNode.class);
         try {
@@ -128,21 +139,22 @@ public class PassengerServiceImpl implements PassengerService {
             //node to Passenger Object
             var updatedPassenger = mapper.convertValue(updatedNode, Passenger.class);
 
-            return passengerRepository.save(updatedPassenger);
+            passengerRepository.save(updatedPassenger);
+            return modelMapper.map(foundPassenger, PassengerDTO.class);
         } catch (JsonPatchException e) {
-            log.error(e.getMessage());
+            //log.error(e.getMessage());
             throw new RuntimeException();
         }
     }
 
     @Override
-    public Paginate<Passenger> getAllPassengers(int pageNumber) {
+    public Paginate<PassengerDTO> getAllPassengers(int pageNumber) {
         if (pageNumber < 1) pageNumber = 0;
         else pageNumber -= 1;
 
         Pageable pageable = PageRequest.of(pageNumber, NUMBER_OF_ITEMS_PER_PAGE);
         Page<Passenger> pagedPassenger = passengerRepository.findAll(pageable);
-        Type returnedPassenger = new TypeToken<Paginate<Passenger>>() {
+        Type returnedPassenger = new TypeToken<Paginate<PassengerDTO>>() {
         }.getType();
         return modelMapper.map(pagedPassenger, returnedPassenger);
     }
@@ -153,13 +165,17 @@ public class PassengerServiceImpl implements PassengerService {
         passengerRepository.deleteById(id);
     }
 
+    private Passenger getInnerPassenger(Long id) {
+        return passengerRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("Passenger could not be found"));
+    }
 
     @Override
-    public ApiResponse attemptBookRide(BookRideRequest bookRideRequest) {
+    public GlobalApiResponse attemptBookRide(BookRideRequest bookRideRequest) {
         //Passenger currentUser = currentPassenger();
 
         //1. find passenger
-        Passenger foundPassenger = getPassengerById(bookRideRequest.getPassengerId());
+        Passenger foundPassenger = getInnerPassenger(bookRideRequest.getPassengerId());
         if (foundPassenger == null) throw new DrideException(
                 String.format("passenger with id %d not found", bookRideRequest.getPassengerId())
         );
@@ -171,16 +187,18 @@ public class PassengerServiceImpl implements PassengerService {
         String eta = distanceInformation.getDuration().getText();
         //4. calculate price
         BigDecimal fare = DrideUtilities.calculateRideFare(distanceInformation.getDistance().getText());
-        return ApiResponse.builder()
+        return globalResponse
                 .fare(fare)
                 .estimatedTimeOfArrival(eta)
                 .build();
+
     }
 
     @Override
-    public Passenger getPassengerByEmail(String email) {
-        return passengerRepository.findPassengerByUser_Email(email)
+    public PassengerDTO getPassengerByEmail(String email) {
+        Passenger passenger = passengerRepository.findPassengerByUser_Email(email)
                 .orElseThrow(() -> new UserNotFoundException("Could not find"));
+        return modelMapper.map(passenger, PassengerDTO.class);
     }
 
     @Override
@@ -193,14 +211,15 @@ public class PassengerServiceImpl implements PassengerService {
 
         var response = attemptBookRide(bookRideRequest);
         if (request.getRideStatus() == null || !request.getRideStatus().equals(Status.BOOKED)) {
-            return new BookRideResponse<>(ApiResponse.builder()
+            return new BookRideResponse<>(globalResponse
                     .message("Incomplete Ride Booking")
                     .fare(response.getFare())
                     .estimatedTimeOfArrival(response.getEstimatedTimeOfArrival())
+                    //.isSuccess(false)
                     .build());
         }
 
-        Passenger passenger = getPassengerById(request.getPassengerId());
+        Passenger passenger = getInnerPassenger(request.getPassengerId());
 
         Ride ride = Ride.builder()
                 .fare(response.getFare())
@@ -216,17 +235,17 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     @Override
-    public ApiResponse rateDriver(RateDriverRequest request) {
+    public GlobalApiResponse rateDriver(RateDriverRequest request) {
         Ride ride = rideService.getRideByPassengerIdAndDriverIdRideStatus(
                 request.getPassengerId(), request.getDriverId(), Status.END_RIDE);
 
         ride.setDriverRating(request.getRating());
         rideService.save(ride);
         String driverName = ride.getDriver().getUser().getName();
-
-        return ApiResponse.builder()
-                .message(String.format("That you for your feedback! You have rated %s : %s",
-                        driverName, request.getRating().toString()))
+        String rating = request.getRating().toString();
+        return globalResponse
+                .message(String.format("Thank you for your feedback! You have rated %s : %s", driverName, rating))
+                //.isSuccess(true)
                 .build();
     }
 
@@ -234,23 +253,6 @@ public class PassengerServiceImpl implements PassengerService {
     public Optional<Passenger> getPassengerByUserId(Long userId) {
         return passengerRepository.findPassengerByUser_Id(userId);
     }
-
-//    @Override
-//    public Passenger currentPassenger() {
-//        try {
-//            UserDetails authenticatedUser =
-//                    (UserDetails) SecurityContextHolder
-//                            .getContext()
-//                            .getAuthentication()
-//                            .getPrincipal();
-//            log.info("authenticatedUser: {}", authenticatedUser.getUsername());
-//
-//            return passengerRepository.findPassengerByUserDetails_Email(authenticatedUser.getUsername())
-//                    .orElseThrow(() -> new BusinessLogicException("Passenger not found"));
-//        } catch (Exception e) {
-//            throw new UserNotFoundException("Passenger not found");
-//        }
-//    }
 
     private DistanceMatrixElement getDistanceInformation(Location origin, Location destination) {
         RestTemplate restTemplate = new RestTemplate();
@@ -272,11 +274,14 @@ public class PassengerServiceImpl implements PassengerService {
                 + "&key=" + directionConfig.getGoogleApiKey();
     }
 
-    private static RegisterResponse getRegisterResponse(Passenger savedPassenger) {
-        RegisterResponse registerResponse = new RegisterResponse();
-        registerResponse.setId(savedPassenger.getId());
-        registerResponse.setSuccess(true);
-        registerResponse.setMessage("User Registration Successful");
-        return registerResponse;
-    }
+//    private GlobalApiResponse getRegisterResponse(Passenger savedPassenger) {
+//        RegisterResponse registerResponse = new RegisterResponse();
+//        registerResponse.setId(savedPassenger.getId());
+//        registerResponse.setSuccess(true);
+//        registerResponse.setMessage("User Registration Successful");
+//        return globalResponse
+//                .id(savedPassenger.getId())
+//                .message("User Registration Successful")
+//                .build();
+//    }
 }

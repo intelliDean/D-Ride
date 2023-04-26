@@ -1,4 +1,4 @@
-package dean.project.Dride.data.dto.response;
+package dean.project.Dride.data.dto.response.google_dtos;
 
 
 import lombok.*;

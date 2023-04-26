@@ -7,6 +7,7 @@ import dean.project.Dride.config.distance.DistanceConfig;
 import dean.project.Dride.config.mail.MailConfig;
 import dean.project.Dride.config.security.util.JwtUtil;
 import dean.project.Dride.config.sms.SMSConfig;
+import dean.project.Dride.data.dto.response.GlobalApiResponse;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
@@ -108,6 +109,11 @@ public class AppConfig {
     @Bean
     public JwtUtil jwtUtil() {
         return new JwtUtil(jwtSecret);
+    }
+
+    @Bean
+    public GlobalApiResponse.GlobalApiResponseBuilder getResponse() {
+        return GlobalApiResponse.builder();
     }
 
 //    @Bean

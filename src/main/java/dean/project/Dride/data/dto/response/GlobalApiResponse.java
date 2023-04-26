@@ -11,10 +11,15 @@ import java.math.BigDecimal;
 @Builder
 @Getter
 @Setter
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @ToString
-public class ApiResponse {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class GlobalApiResponse {
+    private Long id;
     private String message;
-    private BigDecimal fare;
     private String estimatedTimeOfArrival;
+    private BigDecimal fare;
+    private String name;
+    private String phoneNumber;
+    private String profileImage;
+    private Long employeeId;
 }

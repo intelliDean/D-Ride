@@ -1,28 +1,27 @@
 package dean.project.Dride.services.driver_service;
 
 import com.github.fge.jsonpatch.JsonPatch;
-import dean.project.Dride.utilities.Paginate;
 import dean.project.Dride.data.dto.request.AcceptRideRequest;
 import dean.project.Dride.data.dto.request.EndRideRequest;
 import dean.project.Dride.data.dto.request.RegisterDriverRequest;
 import dean.project.Dride.data.dto.request.StartRideRequest;
-import dean.project.Dride.data.dto.response.AcceptRideResponse;
-import dean.project.Dride.data.dto.response.ApiResponse;
-import dean.project.Dride.data.dto.response.RegisterResponse;
+import dean.project.Dride.data.dto.response.DriverDTO;
+import dean.project.Dride.data.dto.response.GlobalApiResponse;
 import dean.project.Dride.data.models.Driver;
+import dean.project.Dride.utilities.Paginate;
 
 import java.util.Optional;
 
 public interface DriverService {
-    RegisterResponse register(RegisterDriverRequest request);
+    GlobalApiResponse register(RegisterDriverRequest request);
     Optional<Driver> getDriverBy(Long driverId);
-    Driver getDriverById(Long driverId);
+    DriverDTO getDriverById(Long driverId);
     void saveDriver(Driver driver);
-    Driver getDriverByEMail(String email);
-    AcceptRideResponse acceptRide(AcceptRideRequest request);
-    ApiResponse startRide(StartRideRequest request);
-    ApiResponse endRide(EndRideRequest request);
-    Paginate<Driver> getAllDrivers(int pageNumber);
-    Driver updateDriver(Long driverId, JsonPatch jsonPatch);
+    DriverDTO getDriverByEMail(String email);
+    GlobalApiResponse acceptRide(AcceptRideRequest request);
+    GlobalApiResponse startRide(StartRideRequest request);
+    GlobalApiResponse endRide(EndRideRequest request);
+    Paginate<DriverDTO> getAllDrivers(int pageNumber);
+    DriverDTO updateDriver(Long driverId, JsonPatch jsonPatch);
     Optional<Driver> getDriverByUserId(Long userId);
 }

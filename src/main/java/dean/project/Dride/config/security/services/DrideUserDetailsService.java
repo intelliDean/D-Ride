@@ -18,7 +18,7 @@ public class DrideUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userService.getByEmail(username);
+        User user = userService.getInnerUserByEmail(username);
         return new AuthenticatedUser(user);
     }
 }

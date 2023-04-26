@@ -4,19 +4,19 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
-import dean.project.Dride.utilities.Paginate;
 import dean.project.Dride.data.dto.request.*;
-import dean.project.Dride.data.dto.response.AcceptRideResponse;
-import dean.project.Dride.data.dto.response.ApiResponse;
-import dean.project.Dride.data.dto.response.RegisterResponse;
+import dean.project.Dride.data.dto.response.DriverDTO;
+import dean.project.Dride.data.dto.response.GlobalApiResponse;
 import dean.project.Dride.data.models.*;
 import dean.project.Dride.data.repositories.DriverRepository;
 import dean.project.Dride.exceptions.DrideException;
 import dean.project.Dride.exceptions.ImageUploadException;
+import dean.project.Dride.exceptions.UserNotFoundException;
 import dean.project.Dride.services.cloud.CloudService;
 import dean.project.Dride.services.notification.MailService;
 import dean.project.Dride.services.ride_services.RideService;
 import dean.project.Dride.utilities.DrideUtilities;
+import dean.project.Dride.utilities.Paginate;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -48,9 +48,10 @@ public class DriverServiceImpl implements DriverService {
     private final MailService mailService;
     private final PasswordEncoder passwordEncoder;
     private final RideService rideService;
+    private final GlobalApiResponse.GlobalApiResponseBuilder globalResponse;
 
     @Override
-    public RegisterResponse register(RegisterDriverRequest request) {
+    public GlobalApiResponse register(RegisterDriverRequest request) {
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
@@ -74,19 +75,12 @@ public class DriverServiceImpl implements DriverService {
         EmailNotificationRequest emailRequest = buildNotificationRequest(
                 user.getEmail(), user.getName(), user.getId());
         String response = mailService.sendHTMLMail(emailRequest);
-        if (response == null) return getRegisterFailureResponse();
-        return RegisterResponse.builder()
+        if (response == null) {
+            return globalResponse.message("Driver Registration Failed").build();
+        }
+        return globalResponse
                 .id(savedDriver.getId())
-                .isSuccess(true)
                 .message("Driver Registration Successful")
-                .build();
-    }
-
-    private static RegisterResponse getRegisterFailureResponse() {
-        return RegisterResponse.builder()
-                .id(-1L)
-                .isSuccess(false)
-                .message("Driver Registration Failed")
                 .build();
     }
 
@@ -106,34 +100,37 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public Driver getDriverById(Long driverId) {
-        return driverRepository.findById(driverId)
+    public DriverDTO getDriverById(Long driverId) {
+        Driver driver = driverRepository.findById(driverId)
                 .orElseThrow(() -> new DrideException("Driver not found"));
+        return modelMapper.map(driver, DriverDTO.class);
     }
 
     @Override
-    public Paginate<Driver> getAllDrivers(int pageNumber) {
+    public Paginate<DriverDTO> getAllDrivers(int pageNumber) {
         if (pageNumber < 1) pageNumber = 0;
         else pageNumber -= 1;
 
         Pageable pageable = PageRequest.of(pageNumber, NUMBER_OF_ITEMS_PER_PAGE);
         Page<Driver> pagedDriver = driverRepository.findAll(pageable);
-        Type returnedDrivers = new TypeToken<Paginate<Driver>>() {
+        Type returnedDrivers = new TypeToken<Paginate<DriverDTO>>() {
         }.getType();
         return modelMapper.map(pagedDriver, returnedDrivers);
     }
 
     @Override
-    public Driver updateDriver(Long driverId, JsonPatch jsonPatch) {
+    public DriverDTO updateDriver(Long driverId, JsonPatch jsonPatch) {
         ObjectMapper objectMapper = new ObjectMapper();
-        Driver driver = getDriverById(driverId);
+        Driver driver = driverRepository.findById(driverId)
+                .orElseThrow(() ->  new UserNotFoundException("Driver could not be found"));
 
         JsonNode jsonNode = objectMapper.convertValue(driver, JsonNode.class);
         try {
             JsonNode updatedNode = jsonPatch.apply(jsonNode);
 
             Driver updatedDriver = objectMapper.convertValue(updatedNode, Driver.class);
-            return driverRepository.save(updatedDriver);
+            driverRepository.save(updatedDriver);
+            return modelMapper.map(driver, DriverDTO.class);
 
         } catch (JsonPatchException e) {
             throw new DrideException("Failed to update");
@@ -151,13 +148,14 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public Driver getDriverByEMail(String email) {
-        return driverRepository.findDriverByUser_Email(email)
+    public DriverDTO getDriverByEMail(String email) {
+        Driver driver =  driverRepository.findDriverByUser_Email(email)
                 .orElseThrow(() -> new DrideException("not found driver"));
+        return modelMapper.map(driver, DriverDTO.class);
     }
 
     @Override
-    public AcceptRideResponse acceptRide(AcceptRideRequest request) {
+    public GlobalApiResponse acceptRide(AcceptRideRequest request) {
         Ride ride = rideService.getRideByPassengerIdAndRideStatus(request.getPassengerId(), Status.BOOKED);
 
         Driver driver = getDriverBy(request.getDriverId())
@@ -167,8 +165,8 @@ public class DriverServiceImpl implements DriverService {
         ride.setRideStatus(Status.ACCEPTED);
         rideService.save(ride);
 
-        return AcceptRideResponse.builder()
-                .rideId(ride.getId())
+        return globalResponse
+                .id(ride.getId())
                 .phoneNumber(driver.getPhoneNumber())
                 .profileImage(driver.getUser().getProfileImage())
                 .name(driver.getUser().getName())
@@ -176,7 +174,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public ApiResponse startRide(StartRideRequest request) {
+    public GlobalApiResponse startRide(StartRideRequest request) {
         Ride ride = rideService.getRideByPassengerIdAndDriverIdRideStatus(
                 request.getPassengerId(), request.getDriverId(), Status.ACCEPTED);
 
@@ -184,15 +182,15 @@ public class DriverServiceImpl implements DriverService {
         ride.setStartTime(LocalDateTime.now().toString());
         rideService.save(ride);
 
-        return ApiResponse.builder()
+        return globalResponse
                 .message("Ride started successfully")
                 .build();
     }
 
     @Override
-    public ApiResponse endRide(EndRideRequest request) {
+    public GlobalApiResponse endRide(EndRideRequest request) {
         Ride ride = rideService.getRideByPassengerIdAndDriverIdRideStatus(
-                request.getPassengerId(),  request.getDriverId(), Status.START_RIDE);
+                request.getPassengerId(), request.getDriverId(), Status.START_RIDE);
 
         ride.setRideStatus(Status.END_RIDE);
         ride.setEndTime(LocalDateTime.now().toString());
@@ -200,7 +198,7 @@ public class DriverServiceImpl implements DriverService {
         //TODO WILL STILL NEED GOOGLE API TO CALCULATE THE ACTUAL FARE INSTEAD OF MOCKING IT
 
         rideService.save(ride);
-        return ApiResponse.builder()
+        return globalResponse
                 .message("Trip ended")
                 .fare(ride.getFare())   //todo: I should call google Api to calculate the eventual fare
                 .build();

@@ -87,9 +87,7 @@ public class DriverServiceImpl implements DriverService {
 
         Period period = Period.between(dateOfBirth, currentDate);
         int age = period.getYears();
-        if (age < 18) {
-            throw new DrideException(TOO_YOUNG);
-        }
+        if (age < 18) throw new DrideException(TOO_YOUNG);
         return age;
     }
 
@@ -129,10 +127,8 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public Paginate<DriverDTO> getAllDrivers(int pageNumber) {
-        if (pageNumber < 1) pageNumber = 0;
-        else pageNumber -= 1;
-
-        Pageable pageable = PageRequest.of(pageNumber, NUMBER_OF_ITEMS_PER_PAGE);
+        int page = pageNumber < 1 ? 0 : pageNumber - 1;
+        Pageable pageable = PageRequest.of(page, NUMBER_OF_ITEMS_PER_PAGE);
         Page<Driver> pagedDriver = driverRepository.findAll(pageable);
         Type returnedDrivers = new TypeToken<Paginate<DriverDTO>>() {
         }.getType();

@@ -131,10 +131,8 @@ public class UserServiceImpl implements UserService {
     }
     @Override
     public Paginate<UserDTO> getAllUsers(int pageNumber) {
-        if (pageNumber < 0) pageNumber = 0;
-        else pageNumber -= 1;
-
-        Pageable pageable = PageRequest.of(pageNumber, NUMBER_OF_ITEMS_PER_PAGE);
+        int page = pageNumber < 1 ? 0 : pageNumber - 1;
+        Pageable pageable = PageRequest.of(page, NUMBER_OF_ITEMS_PER_PAGE);
         Page<User> users = userRepository.findAll(pageable);
         Type paginatedUsers = new TypeToken<Paginate<UserDTO>>() {
         }.getType();

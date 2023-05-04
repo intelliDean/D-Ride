@@ -39,7 +39,6 @@ public class RideServiceImpl implements RideService {
     public Ride getRideByPassengerIdAndRideStatus(Long passengerId, Status status) {
         return rideRepository.findRideByPassenger_IdAndRideStatus(passengerId, status)
                 .orElseThrow(() -> new DrideException(RIDE_NOT_FOUND));
-
     }
 
     @Override
@@ -50,10 +49,8 @@ public class RideServiceImpl implements RideService {
 
     @Override
     public Paginate<RideDTO> getAllRides(int pageNumber) {
-        if (pageNumber < 0) pageNumber = 0;
-        else pageNumber -= 1;
-
-        Pageable pageable = PageRequest.of(pageNumber, NUMBER_OF_ITEMS_PER_PAGE);
+        int page = pageNumber < 1 ? 0 : pageNumber - 1;
+        Pageable pageable = PageRequest.of(page, NUMBER_OF_ITEMS_PER_PAGE);
         Page<Ride> rides = rideRepository.findAll(pageable);
         Type paginatedRide = new TypeToken<Paginate<RideDTO>>() {
         }.getType();
@@ -62,31 +59,24 @@ public class RideServiceImpl implements RideService {
 
     @Override
     public Paginate<RideDTO> getAllRidesByDriver(Long driverId, int pageNumber) {
-        if (pageNumber < 0) pageNumber = 0;
-        else pageNumber -= 1;
-
+        int page = pageNumber < 1 ? 0 : pageNumber - 1;
         List<Ride> driverRides = rideRepository.findAllByDriver_Id(driverId);
-        return getPaginatedRide(pageNumber, driverRides);
+        return getPaginatedRide(page, driverRides);
     }
 
     @Override
     public Paginate<RideDTO> getAllRidesByPassenger(Long passengerId, int pageNumber) {
-        if (pageNumber < 0) pageNumber = 0;
-        else pageNumber -= 1;
-
+        int page = pageNumber < 1 ? 0 : pageNumber - 1;
         List<Ride> passengerRides = rideRepository.findAllByPassenger_Id(passengerId);
-        return getPaginatedRide(pageNumber, passengerRides);
+        return getPaginatedRide(page, passengerRides);
     }
 
     @Override
     public Paginate<RideDTO> getAllRidesByPassengerAndDriver(AllRideRequest request) {
-        if (request.getPageNumber() < 0) request.setPageNumber(0);
-        else request.setPageNumber(request.getPageNumber() - 1);
-
+        int page = request.getPageNumber()< 1 ? 0 : request.getPageNumber() - 1;
         List<Ride> bothRides = rideRepository.findAllByPassenger_IdAndDriver_Id(
                 request.getPassengerId(), request.getDriverId());
-
-        return getPaginatedRide(request.getPageNumber(), bothRides);
+        return getPaginatedRide(page, bothRides);
     }
 
     private Paginate<RideDTO> getPaginatedRide(int pageNumber, List<Ride> ridesList) {

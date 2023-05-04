@@ -108,10 +108,8 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public Paginate<AdminDTO> getAllAdmins(int pageNumber) {
-        if (pageNumber < 0) pageNumber = 0;
-        else pageNumber -= 1;
-
-        Pageable pageable = PageRequest.of(pageNumber, NUMBER_OF_ITEMS_PER_PAGE);
+        int page = pageNumber < 1 ? 0 : pageNumber - 1;
+        Pageable pageable = PageRequest.of(page, NUMBER_OF_ITEMS_PER_PAGE);
         Page<Admin> admin = adminRepository.findAll(pageable);
         Type type = new TypeToken<Paginate<AdminDTO>>() {
         }.getType();

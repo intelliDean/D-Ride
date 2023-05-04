@@ -70,11 +70,11 @@ public class PassengerServiceImpl implements PassengerService {
 
         String welcomeMail = sendWelcomeMail(savedPassenger);
 
-        if (welcomeMail == null) {
-            globalResponse
-                    .message(PASSENGER_REG_FAILED)
-                    .build();
-        }
+        if (welcomeMail == null)
+            return globalResponse
+                .message(PASSENGER_REG_FAILED)
+                .build();
+
         return globalResponse
                 .id(savedPassenger.getId())
                 .message(REG_SUCCESS)
@@ -146,10 +146,8 @@ public class PassengerServiceImpl implements PassengerService {
 
     @Override
     public Paginate<PassengerDTO> getAllPassengers(int pageNumber) {
-        if (pageNumber < 1) pageNumber = 0;
-        else pageNumber -= 1;
-
-        Pageable pageable = PageRequest.of(pageNumber, NUMBER_OF_ITEMS_PER_PAGE);
+        int page = pageNumber < 1 ? 0 : pageNumber - 1;
+        Pageable pageable = PageRequest.of(page, NUMBER_OF_ITEMS_PER_PAGE);
         Page<Passenger> pagedPassenger = passengerRepository.findAll(pageable);
         Type returnedPassenger = new TypeToken<Paginate<PassengerDTO>>() {
         }.getType();
@@ -183,6 +181,7 @@ public class PassengerServiceImpl implements PassengerService {
                 .estimatedTimeOfArrival(eta)
                 .build();
     }
+
     @Override
     public PassengerDTO getPassengerByEmail(String email) {
         Passenger passenger = passengerRepository.findPassengerByUser_Email(email)

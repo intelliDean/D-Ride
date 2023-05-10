@@ -39,8 +39,8 @@ public class Constants {
     public static final Long VALUE1 = 3500L;
     public static final Long VALUE2 = 616L;
     public static final String USER_VERIFICATION_BASE_URL = "localhost:9090/api/v1/user/account/verify";
-    public static final String DRIVER_WELCOME_MAIL_FILEPATH = "C:\\Users\\Dean\\IdeaProjects\\Dride\\Dride\\src\\main\\resources\\driver_welcome.txt";
-    public static final String PASSENGER_WELCOME_MAIL_FILEPATH = "C:\\Users\\Dean\\IdeaProjects\\Dride\\Dride\\src\\main\\resources\\passenger_welcome.txt";
-    public static final String ADMIN_INVITE_MAIL_FILEPATH = "C:\\Users\\Dean\\IdeaProjects\\new_uber\\uber_deluxe\\src\\main\\resources\\adminMail.txt";
-    public static final String UBER_DELUXE_TEST_IMAGE = "C:\\Users\\Dean\\IdeaProjects\\new_uber\\uber_deluxe\\src\\main\\resources\\repeatability-scalability-v5-1332458578.jpeg";
+    public static final String DRIVER_WELCOME_MAIL_FILEPATH = "C:\\Users\\Dean\\IdeaProjects\\Dride\\Dride\\src\\main\\resources\\templates\\driver_welcome.txt";
+    public static final String PASSENGER_WELCOME_MAIL_FILEPATH = "C:\\Users\\Dean\\IdeaProjects\\Dride\\Dride\\src\\main\\resources\\templates\\passenger_welcome.txt";
+    public static final String ADMIN_INVITE_MAIL_FILEPATH = "C:\\Users\\Dean\\IdeaProjects\\Dride\\Dride\\src\\main\\resources\\templates\\adminMail.txt";
+    public static final String UBER_DELUXE_TEST_IMAGE = "C:\\Users\\Dean\\IdeaProjects\\Dride\\Dride\\src\\main\\resources\\static\\repeatability-scalability-v5-1332458578.jpeg";
 }

@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.threeten.bp.LocalDateTime;
 
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
 
@@ -59,11 +60,10 @@ public class AdminServiceImpl implements AdminService {
         request.setHtmlContent(String.format(adminMail, adminName, link));
 
         var response = mailService.sendHTMLMail(request);
-        if (response != null) {
-            return globalResponse
-                    .message(String.format(ADMIN_IV, admin.getId()))
-                    .build();
-        }
+        if (response != null) return globalResponse
+                .message(String.format(ADMIN_IV, admin.getId()))
+                .build();
+
         throw new DrideException(EMAIL_EXCEPTION);
     }
 
@@ -84,14 +84,15 @@ public class AdminServiceImpl implements AdminService {
 
     private String generateEmployeeId(Admin admin) {
         StringBuilder builder = new StringBuilder();
-        String[] first = admin.getUser().getName().split(REGX);
-        for (String s : first) {
-            builder.append(s.charAt(0));
-        }
-        String init = builder.toString().toUpperCase();
+        String[] splitNames = admin.getUser().getName().split(REGX);
+        Arrays.stream(splitNames).forEach(eachName -> builder.append(eachName.charAt(0)));
+//        for (String eachName : splitNames) {
+//            builder.append(eachName.charAt(0));
+//        }
+        String toUppercase = builder.toString().toUpperCase();
         String adminId = String.valueOf(admin.getId());
         String userId = String.valueOf(admin.getUser().getId());
-        return String.format(EMP_ID, init, adminId, userId);
+        return String.format(EMP_ID, toUppercase, adminId, userId);
     }
 
     @Override

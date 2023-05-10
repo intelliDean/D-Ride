@@ -83,8 +83,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public GlobalApiResponse verifyAccount(Long userId, String token) {
-        if (DrideUtilities.isTokenSigned(token))
-            return getVerifiedResponse(userId);
+        if (DrideUtilities.isTokenSigned(token)) return getVerifiedResponse(userId);
         throw new DrideException(String.format(VERIFY_FAILED, userId));
     }
 
@@ -112,23 +111,27 @@ public class UserServiceImpl implements UserService {
         admin.getUser().setIsEnabled(true);
         adminService.saveAdmin(admin);
     }
+
     @Override
     public UserDTO getByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(UserNotFoundException::new);
         return modelMapper.map(user, UserDTO.class);
     }
+
     @Override
     public User getInnerUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(UserNotFoundException::new);
     }
+
     @Override
     public UserDTO getByUserId(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
         return modelMapper.map(user, UserDTO.class);
     }
+
     @Override
     public Paginate<UserDTO> getAllUsers(int pageNumber) {
         int page = pageNumber < 1 ? 0 : pageNumber - 1;
@@ -138,6 +141,7 @@ public class UserServiceImpl implements UserService {
         }.getType();
         return modelMapper.map(users, paginatedUsers);
     }
+
     @Override
     public String CurrentAppUser() {
         try {

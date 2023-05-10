@@ -56,7 +56,6 @@ public class DriverServiceImpl implements DriverService {
     @Override
     public GlobalApiResponse register(RegisterDriverRequest request) {
         User user = createUser(request);
-
         var imageUrl = cloudService.upload(request.getLicenseImage());
         if (imageUrl == null) throw new ImageUploadException(DRIVER_REG_FAILED);
 
@@ -71,13 +70,9 @@ public class DriverServiceImpl implements DriverService {
         EmailNotificationRequest emailRequest = buildNotificationRequest(
                 user.getEmail(), user.getName(), user.getId());
         String response = mailService.sendHTMLMail(emailRequest);
-        if (response == null) {
-            return globalResponse.message(DRIVER_REG_FAILED).build();
-        }
-        return globalResponse
-                .id(savedDriver.getId())
-                .message(REG_SUCCESS)
-                .build();
+        return response == null
+                ? globalResponse.message(DRIVER_REG_FAILED).build()
+                : globalResponse.id(savedDriver.getId()).message(REG_SUCCESS).build();
     }
 
     private static int getAge(RegisterDriverRequest request) {
@@ -173,7 +168,11 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public GlobalApiResponse acceptRide(AcceptRideRequest request) {
-        Ride ride = rideService.getRideByPassengerIdAndRideStatus(request.getPassengerId(), Status.BOOKED);
+        Ride ride = rideService
+                .getRideByPassengerIdAndRideStatus(
+                        request.getPassengerId(),
+                        Status.BOOKED
+                );
 
         Driver driver = getDriverBy(request.getDriverId())
                 .orElseThrow(UserNotFoundException::new);

@@ -70,15 +70,9 @@ public class PassengerServiceImpl implements PassengerService {
 
         String welcomeMail = sendWelcomeMail(savedPassenger);
 
-        if (welcomeMail == null)
-            return globalResponse
-                .message(PASSENGER_REG_FAILED)
-                .build();
-
-        return globalResponse
-                .id(savedPassenger.getId())
-                .message(REG_SUCCESS)
-                .build();
+        return welcomeMail == null
+                ? globalResponse.message(PASSENGER_REG_FAILED).build()
+                : globalResponse.id(savedPassenger.getId()).message(REG_SUCCESS).build();
     }
 
     private Passenger createPassenger(RegisterPassengerRequest registerRequest) {
@@ -170,12 +164,20 @@ public class PassengerServiceImpl implements PassengerService {
         Passenger foundPassenger = getInnerPassenger(bookRideRequest.getPassengerId());
         if (foundPassenger == null) throw new UserNotFoundException();
 
-        var response = mockLocationService.getDistanceInformation(bookRideRequest.getOrigin(), bookRideRequest.getDestination());
+        var response = mockLocationService
+                .getDistanceInformation(
+                        bookRideRequest.getOrigin(),
+                        bookRideRequest.getDestination()
+                );
         DistanceMatrixElement distanceInformation = response.getRows().get(0).getElements().get(0);
 //               getDistanceInformation(bookRideRequest.getOrigin(), bookRideRequest.getDestination());
         String eta = distanceInformation.getDuration().getText();
 
-        BigDecimal fare = DrideUtilities.calculateRideFare(distanceInformation.getDistance().getText());
+        BigDecimal fare = DrideUtilities
+                .calculateRideFare(
+                        distanceInformation
+                                .getDistance()
+                                .getText());
         return globalResponse
                 .fare(fare)
                 .estimatedTimeOfArrival(eta)

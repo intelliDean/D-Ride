@@ -3,6 +3,7 @@ package dean.project.Dride.data.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Formula;
 
 import java.util.Set;
 
@@ -25,18 +26,11 @@ public class User {
     @Column(unique = true, updatable = true)
     private String email;
     private String profileImage;
-    @Enumerated(EnumType.STRING)
     private Set<Role> roles;
     private String createdAt;
     private Boolean isEnabled;
+
 }
-
-//to set uo roles and privileges https://www.baeldung.com/role-and-privilege-for-spring-security-registration
-
-
-//    @ManyToMany
-//    @JoinTable(
-//            name = "users_roles",
-//            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
-//            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
-//    private Set<Role> roles = new HashSet<>();
+//@Formula("(CASE WHEN is_enabled = 1 THEN 'Yes' ELSE 'No' END)")
+//    private String enabled;
+//    @Column(name = "is_enabled")

@@ -4,7 +4,6 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import dean.project.Dride.exceptions.ImageUploadException;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,8 +14,7 @@ import static dean.project.Dride.utilities.Constants.URL;
 
 @Service
 @AllArgsConstructor
-@Slf4j
-public class CloudinaryCloudServiceImpl implements CloudService{
+public class CloudinaryCloudServiceImpl implements CloudService {
 
     private final Cloudinary cloudinary;
 
@@ -26,8 +24,8 @@ public class CloudinaryCloudServiceImpl implements CloudService{
             Map<?, ?> response =
                     cloudinary.uploader().upload(image.getBytes(), ObjectUtils.emptyMap());
             return response.get(URL).toString();
-        } catch (IOException e) {
-            throw new ImageUploadException(e.getMessage());
+        } catch (IOException ex) {
+            throw new ImageUploadException(ex.getMessage());
         }
     }
 }

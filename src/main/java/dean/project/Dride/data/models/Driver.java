@@ -24,9 +24,9 @@ public class Driver {
     private Address address;
     @Enumerated(EnumType.STRING)
     private Gender gender;
-    private String licenseId;
-    private String licenseImage;
-    private int age;
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private DriverLicense driverLicense;
+    private Integer age;
     @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Referee referee;
@@ -37,6 +37,4 @@ public class Driver {
     private User user;
     @OneToMany()
     private Set<Ride> rides = new HashSet<>();
-
-
 }

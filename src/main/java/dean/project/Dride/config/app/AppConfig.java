@@ -23,10 +23,10 @@ import static dean.project.Dride.utilities.Constants.*;
 public class AppConfig {
     @Value("${cloudinary.cloud.name}")
     private String cloudName;
-    @Value("${cloudinary.api.key}")
-    private String apiKey;
     @Value("${cloudinary.api.secret}")
     private String apiSecret;
+    @Value("${cloudinary.api.key}")
+    private String cloudApiKey;
     @Value("${google.distance.url}")
     private String googleDistanceUrl;
     @Value("${google.api.key}")
@@ -41,21 +41,17 @@ public class AppConfig {
     private String authToken;
     @Value("${twilio.phone.number}")
     private String phoneNumber;
-    @Value("${db_password}")
-    public static String DB_PASSWORD;
     @Value("${jwt.secret.key}")
     private String jwtSecret;
 
 
-    @Bean
+  @Bean
     public Cloudinary cloudinary() {
         return new Cloudinary(
                 ObjectUtils.asMap(
                         CLOUD_NAME, cloudName,
-                        API_KEY, apiKey,
-                        API_SECRET, apiSecret
-                )
-        );
+                        API_KEY, cloudApiKey,
+                        API_SECRET, apiSecret));
     }
 
     @Bean

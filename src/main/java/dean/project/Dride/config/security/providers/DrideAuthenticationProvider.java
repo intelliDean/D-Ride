@@ -19,7 +19,6 @@ public class DrideAuthenticationProvider implements AuthenticationProvider {
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
 
-
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         UserDetails userDetails = userDetailsService.loadUserByUsername(
@@ -36,7 +35,6 @@ public class DrideAuthenticationProvider implements AuthenticationProvider {
 
         throw new BadCredentialsException(INCORRECT_CREDENTIALS);
     }
-
     @Override
     public boolean supports(Class<?> authentication) {
         return authentication.equals(UsernamePasswordAuthenticationToken.class);

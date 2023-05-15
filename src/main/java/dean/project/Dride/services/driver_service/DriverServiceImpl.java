@@ -29,15 +29,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.Period;
-import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.Optional;
 
 import static dean.project.Dride.exceptions.ExceptionMessage.*;
 import static dean.project.Dride.utilities.Constants.*;
+import static dean.project.Dride.utilities.DriverUrls.COMPLETED;
 
 
 @Service
@@ -61,29 +59,52 @@ public class DriverServiceImpl implements DriverService {
 
         Driver driver = new Driver();
         driver.setUser(user);
-        int age = getAge(request);
+        int age = DrideUtilities.calculateAge(request.getDateOfBirth());
+        if (age < 18) throw new DrideException(TOO_YOUNG);
         driver.setAge(age);
-        driver.setLicenseImage(imageUrl);
+        driver.setDriverLicense(DriverLicense.builder()
+                .licenseImage(imageUrl)     //I will have to call Federal Road Safety Corps (FRSC) API to
+                .licenseNumber(request.getLicenseNumber())      //verify the driver license number before registration could be completed
+                .build());
         Driver savedDriver = driverRepository.save(driver);
 
         user = savedDriver.getUser();
-        EmailNotificationRequest emailRequest = buildNotificationRequest(
-                user.getEmail(), user.getName(), user.getId());
-        String response = mailService.sendHTMLMail(emailRequest);
+        String response = mailService.sendHTMLMail(emailRequest(user.getEmail(), user.getName(), user.getId()));
         return response == null
                 ? globalResponse.message(DRIVER_REG_FAILED).build()
                 : globalResponse.id(savedDriver.getId()).message(REG_SUCCESS).build();
     }
 
-    private static int getAge(RegisterDriverRequest request) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_PATTERN);
-        LocalDate dateOfBirth = LocalDate.parse(request.getDateOfBirth(), formatter);
-        LocalDate currentDate = LocalDate.now();
+    @Override
+    public GlobalApiResponse completeRegistration(
+            Long driverId,
+            CompleteDriverRequest driverRequest,
+            RefereeRequest refereeRequest) {
+        Driver driver = getDriver(driverId);
+        Driver updatedDriver = completeDriver(driver, driverRequest);
+        Referee referee = createReferee(refereeRequest);
+        updatedDriver.setReferee(referee);
+        return globalResponse.message(COMPLETED).build();
+    }
 
-        Period period = Period.between(dateOfBirth, currentDate);
-        int age = period.getYears();
-        if (age < 18) throw new DrideException(TOO_YOUNG);
-        return age;
+    private Referee createReferee(RefereeRequest refereeRequest) {
+        int age = DrideUtilities.calculateAge(refereeRequest.getDateOfBirth());
+        Address address = modelMapper.map(refereeRequest, Address.class);
+        Referee referee = modelMapper.map(refereeRequest, Referee.class);
+        referee.setAge(age);
+        referee.setAddress(address);
+        return referee;
+    }
+
+    private Driver completeDriver(Driver driver, CompleteDriverRequest driverRequest) {
+        Address address = modelMapper.map(driverRequest, Address.class);
+        BankInformation bankInformation = modelMapper.map(driverRequest, BankInformation.class);
+
+        driver.setBankInformation(bankInformation);
+        driver.setAddress(address);
+        driver.setPhoneNumber(driverRequest.getPhoneNumber());
+        driver.setGender(driver.getGender());
+        return driver;
     }
 
     @NotNull
@@ -98,7 +119,7 @@ public class DriverServiceImpl implements DriverService {
         return user;
     }
 
-    private EmailNotificationRequest buildNotificationRequest(String email, String name, Long userId) {
+    private EmailNotificationRequest emailRequest(String email, String name, Long userId) {
         EmailNotificationRequest request = new EmailNotificationRequest();
         request.setSubject(USER_SUBJECT);
         request.getTo().add(new Recipient(name, email));
@@ -115,9 +136,12 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public DriverDTO getDriverById(Long driverId) {
-        Driver driver = driverRepository.findById(driverId)
+        return modelMapper.map(getDriver(driverId), DriverDTO.class);
+    }
+
+    private Driver getDriver(Long driverId) {
+        return driverRepository.findById(driverId)
                 .orElseThrow(UserNotFoundException::new);
-        return modelMapper.map(driver, DriverDTO.class);
     }
 
     @Override
@@ -168,11 +192,9 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public GlobalApiResponse acceptRide(AcceptRideRequest request) {
-        Ride ride = rideService
-                .getRideByPassengerIdAndRideStatus(
-                        request.getPassengerId(),
-                        Status.BOOKED
-                );
+        Ride ride = rideService.getRideByPassengerIdAndRideStatus(
+                request.getPassengerId(),
+                Status.BOOKED);
 
         Driver driver = getDriverBy(request.getDriverId())
                 .orElseThrow(UserNotFoundException::new);

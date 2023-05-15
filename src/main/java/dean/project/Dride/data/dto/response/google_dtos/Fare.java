@@ -11,6 +11,5 @@ import lombok.*;
 public class Fare {
     private String currency;
     private double value;
-
     private String text;
 }

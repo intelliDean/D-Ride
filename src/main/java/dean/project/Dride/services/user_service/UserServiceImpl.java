@@ -45,8 +45,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public GlobalApiResponse uploadProfileImage(MultipartFile profileImage, Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(UserNotFoundException::new);
+        User user = userById(userId);
         String imageUrl = cloudService.upload(profileImage);
         if (imageUrl.isEmpty()) throw new DrideException(UPLOAD_FAILED);
         user.setProfileImage(imageUrl);
@@ -114,8 +113,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO getByEmail(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(UserNotFoundException::new);
+        User user = getInnerUserByEmail(email);
         return modelMapper.map(user, UserDTO.class);
     }
 
@@ -127,9 +125,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO getByUserId(Long userId) {
-        User user = userRepository.findById(userId)
+        return modelMapper.map(userById(userId), UserDTO.class);
+    }
+    private User userById(Long userId) {
+        return userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
-        return modelMapper.map(user, UserDTO.class);
     }
 
     @Override

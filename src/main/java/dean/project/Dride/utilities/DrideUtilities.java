@@ -13,6 +13,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.stream.Collectors;
 
@@ -56,6 +59,15 @@ public class DrideUtilities {
                 .setExpiration(expiration)
                 .setIssuedAt(Date.from(Instant.now()))
                 .compact();
+    }
+
+    public static int calculateAge(String dateOfBirth) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_PATTERN);
+        LocalDate birthDate = LocalDate.parse(dateOfBirth, formatter);
+        LocalDate currentDate = LocalDate.now();
+
+        Period period = Period.between(birthDate, currentDate);
+        return period.getYears();
     }
 
     public static boolean isTokenSigned(String token) {

@@ -26,21 +26,24 @@ public class RideController {
 
     @GetMapping(DRIVER_AND_ID)
     //@Secured(value ={"ADMINISTRATOR", "DRIVER"})
-    public ResponseEntity<Paginate<RideDTO>> getAllRidesByDriver(@PathVariable Long driverId, @RequestParam int pageNumber) {
+    public ResponseEntity<Paginate<RideDTO>> getAllRidesByDriver(
+            @PathVariable Long driverId, @RequestParam int pageNumber) {
         Paginate<RideDTO> rides = rideService.getAllRidesByDriver(driverId, pageNumber);
         return ResponseEntity.ok(rides);
     }
 
     @GetMapping(PASSENGER_AND_ID)
     //@Secured(value ={"ADMINISTRATOR", "PASSENGER"})
-    public ResponseEntity<Paginate<RideDTO>> getAllRidesByPassenger(@PathVariable Long passengerId, @RequestParam int pageNumber) {
+    public ResponseEntity<Paginate<RideDTO>> getAllRidesByPassenger(
+            @PathVariable Long passengerId, @RequestParam int pageNumber) {
         Paginate<RideDTO> rides = rideService.getAllRidesByPassenger(passengerId, pageNumber);
         return ResponseEntity.ok(rides);
     }
 
     @GetMapping(PASSENGER_AND_DRIVER)
     //@Secured(value ={"ADMINISTRATOR", "PASSENGER", "DRIVER"})
-    public ResponseEntity<Paginate<RideDTO>> getAllRidesByPassengerAndDriver(@RequestBody AllRideRequest request) {
+    public ResponseEntity<Paginate<RideDTO>> getAllRidesByPassengerAndDriver(
+            @RequestBody AllRideRequest request) {
         Paginate<RideDTO> rides = rideService.getAllRidesByPassengerAndDriver(request);
         return ResponseEntity.ok(rides);
     }

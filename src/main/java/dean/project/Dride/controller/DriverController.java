@@ -1,17 +1,12 @@
 package dean.project.Dride.controller;
 
 import com.github.fge.jsonpatch.JsonPatch;
-import dean.project.Dride.data.dto.request.AcceptRideRequest;
-import dean.project.Dride.data.dto.request.EndRideRequest;
-import dean.project.Dride.data.dto.request.RegisterDriverRequest;
-import dean.project.Dride.data.dto.request.StartRideRequest;
+import dean.project.Dride.data.dto.request.*;
 import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
 import dean.project.Dride.data.dto.response.entity_dtos.DriverDTO;
 import dean.project.Dride.exceptions.DrideException;
 import dean.project.Dride.services.driver_service.DriverService;
 import dean.project.Dride.utilities.Paginate;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -43,6 +38,14 @@ public class DriverController {
                             .build());
         }
     }
+    @PostMapping(COMPLETE_REG)
+    public ResponseEntity<GlobalApiResponse> completeRegistration(
+            @PathVariable Long driverId,
+            @RequestBody CompleteDriverRequest driverRequest,
+            @RequestBody RefereeRequest refereeRequest) {
+        GlobalApiResponse response = driverService.completeRegistration(driverId, driverRequest, refereeRequest);
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping(DRIVER_ID)
     //@Secured(value ={"ADMIN", "DRIVER"})
@@ -60,7 +63,9 @@ public class DriverController {
 
     @PatchMapping(UPDATE_DRIVER)
     //@Secured(value ={"ADMIN", "DRIVER"})
-    public ResponseEntity<DriverDTO> updateDriver(@PathVariable Long driverId, @RequestBody JsonPatch jsonPatch) {
+    public ResponseEntity<DriverDTO> updateDriver(
+            @PathVariable Long driverId,
+            @RequestBody JsonPatch jsonPatch) {
         DriverDTO driver = driverService.updateDriver(driverId, jsonPatch);
         return ResponseEntity.ok(driver);
     }

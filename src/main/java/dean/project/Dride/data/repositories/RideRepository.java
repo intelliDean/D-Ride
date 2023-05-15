@@ -7,7 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
 
-public interface RideRepository extends JpaRepository<Ride, Long> {
+public interface RideRepository
+        extends JpaRepository<Ride, Long> {
     Optional<Ride> findRideByPassenger_IdAndRideStatus(Long passengerId, Status status);
     Optional<Ride> findByPassenger_IdAndDriver_IdAndRideStatus(Long passengerId, Long driverId, Status status);
     List<Ride> findAllByDriver_Id(Long driverId);

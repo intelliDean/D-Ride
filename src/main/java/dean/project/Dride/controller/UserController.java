@@ -25,13 +25,8 @@ public class UserController {
 
     @PostMapping(value = UPLOAD_IMAGE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "To upload any user profile picture")
-    //@Secured(value = {"ADMINISTRATOR", "PASSENGER", "DRIVER"})
     public ResponseEntity<GlobalApiResponse> uploadProfileImage(
-            @Parameter(name = "file", description = "The file to upload", required = true)
-            @RequestParam(value = "file") MultipartFile file,
-            @Parameter(name = "userId", description = "The Id of the user who file is to be uploaded", required = true)
-            @PathVariable Long userId) {
-
+            @RequestParam MultipartFile file,  @PathVariable Long userId) {
         try {
             GlobalApiResponse response = userService.uploadProfileImage(file, userId);
             return ResponseEntity.ok(response);
@@ -47,9 +42,13 @@ public class UserController {
     @PostMapping(VERIFY_ACCOUNT)
     @Operation(summary = "to verify the user before enabling their account")
     public ResponseEntity<GlobalApiResponse> verifyAccount(
-            @Parameter(name = "userId", description = "The  is of the whose account is to be verified", required = true)
+            @Parameter(
+                    name = "userId",
+                    description = "The  is of the whose account is to be verified", required = true)
             @RequestParam Long userId,
-            @Parameter(name = "token", description = "The token sent to the user via email after registration", required = true)
+            @Parameter(
+                    name = "token",
+                    description = "The token sent to the user via email after registration", required = true)
             @RequestParam String token) {
 
         try {

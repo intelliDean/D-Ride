@@ -4,16 +4,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @Entity
+@Builder
 public class Address {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -21,6 +19,6 @@ public class Address {
     private String city;
     private String country;
     private String street;
-    private int houseNumber;
+    private Integer houseNumber;
     private String state;
 }

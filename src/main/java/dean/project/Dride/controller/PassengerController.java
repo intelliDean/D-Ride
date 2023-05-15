@@ -1,7 +1,6 @@
 package dean.project.Dride.controller;
 
 import com.github.fge.jsonpatch.JsonPatch;
-import dean.project.Dride.data.dto.request.BookRideRequest;
 import dean.project.Dride.data.dto.request.RateDriverRequest;
 import dean.project.Dride.data.dto.request.RegisterPassengerRequest;
 import dean.project.Dride.data.dto.request.RideRequest;
@@ -28,7 +27,8 @@ public class PassengerController {
 
 
     @PostMapping
-    public ResponseEntity<GlobalApiResponse> register(@RequestBody RegisterPassengerRequest registerPassengerRequest) {
+    public ResponseEntity<GlobalApiResponse> register(
+            @RequestBody RegisterPassengerRequest registerPassengerRequest) {
         GlobalApiResponse registerResponse = passengerService.register(registerPassengerRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(registerResponse);
     }
@@ -50,9 +50,12 @@ public class PassengerController {
 
     @PatchMapping(PASSENGER_ID)
     //@Secured(value ="PASSENGER")
-    public ResponseEntity<?> updatePassenger(@PathVariable Long passengerId, @RequestBody JsonPatch updatePatch) {
+    public ResponseEntity<?> updatePassenger(
+            @PathVariable Long passengerId,
+            @RequestBody JsonPatch updatePatch) {
         try {
-            PassengerDTO response = passengerService.updatePassenger(passengerId, updatePatch);
+            PassengerDTO response = passengerService
+                    .updatePassenger(passengerId, updatePatch);
             return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (Exception exception) {
             return ResponseEntity.badRequest().body(exception.getMessage());

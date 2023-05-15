@@ -20,6 +20,6 @@ public class CreditCard {
     @ManyToOne
     private Passenger passenger;
     private String cardNumber;
-    private int cvv;
+    private Integer cvv;
     private LocalDate expiryDate;
 }

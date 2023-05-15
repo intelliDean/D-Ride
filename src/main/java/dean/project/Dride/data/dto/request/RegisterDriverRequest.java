@@ -32,6 +32,7 @@ public class RegisterDriverRequest {
     @NotNull
     @NotBlank
     private String dateOfBirth;
+    private String licenseNumber;
 
     @NotNull(message = UPLOAD_LICENSE)
     private MultipartFile licenseImage;

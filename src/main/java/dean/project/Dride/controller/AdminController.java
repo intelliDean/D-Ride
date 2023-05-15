@@ -31,8 +31,6 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
-
-
     @PostMapping(ADMIN_DETAILS)
     public ResponseEntity<AdminDTO> adminDetails(@RequestBody AdminDetailsRequest request) {
         AdminDTO admin = adminService.adminDetails(request);
@@ -41,13 +39,12 @@ public class AdminController {
 
     @GetMapping(GET_ADMIN)
 //    @Secured(value ="ADMINISTRATOR")
-    public ResponseEntity<AdminDTO> getAdminByMail(@RequestBody String email) {
+    public ResponseEntity<AdminDTO> getAdminByMail(@RequestParam String email) {
         AdminDTO admin = adminService.getAdminByEmail(email);
         return ResponseEntity.ok(admin);
     }
 
-    @GetMapping()
-    //Secured(value ="ADMINISTRATOR")
+    @GetMapping(GET)
     public ResponseEntity<AdminDTO> getAdminById(@RequestParam Long adminId) {
         AdminDTO admin = adminService.getAdminById(adminId);
         return ResponseEntity.ok(admin);

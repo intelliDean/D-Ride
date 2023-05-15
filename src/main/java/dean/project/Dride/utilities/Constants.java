@@ -5,9 +5,9 @@ public class Constants {
     public static final String ADMIN_SUBJECT = "Admin Invitation";
     public static final String USER_SUBJECT = "Welcome to Dride";
     public static final String DATE_PATTERN = "dd/MM/yyyy";
-    public static final String EMP_ID = "%s%s%s";
+    public static final String EMP_ID = "%s-0%s-0%s";
     public static final String INCOMPLETE = "Incomplete Ride Booking";
-    public static final String API_KEY = "api-key";
+
     public static final String VERIFY_FAILED = "Account verification for user with %d failed";
     public static final String RIDE_NOT_FOUND = "Ride not found";
     public static final String RATING = "Thank you for your feedback! You have rated %s : %s";
@@ -27,7 +27,9 @@ public class Constants {
     public static final String TOKEN = "&token=";
     public static final String AUTHENTICATION_FAILED = "Authentication not successful";
     public static final String CLOUD_NAME = "cloud_name";
+    public static final String API_KEY = "api_key";
     public static final String API_SECRET = "api_secret";
+    public static final String SECURE="secure";
     public static final String DRIDE_EMAIL = "noreply@dride.org";
     public static final String DESTINATION_ADDRESSES = "destination_addresses";
     public static final String ORIGIN_ADDRESSES = "origin_addresses";

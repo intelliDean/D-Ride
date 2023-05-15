@@ -1,24 +1,23 @@
 package dean.project.Dride.data.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+@Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
 @Getter
 @Setter
-public class BankInformation {
+@Builder
+public class DriverLicense {
     @Id
+    @JsonIgnore
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    private String accountName;
-    private String accountNumber;
-    private String bankName;
+    private String licenseNumber;
+    private String licenseImage;
 }

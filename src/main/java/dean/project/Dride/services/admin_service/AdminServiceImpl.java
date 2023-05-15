@@ -42,7 +42,6 @@ public class AdminServiceImpl implements AdminService {
     private final PasswordEncoder encoder;
     private final ModelMapper modelMapper;
     private final GlobalApiResponse.GlobalApiResponseBuilder globalResponse;
-
     @Override
     public GlobalApiResponse sendInviteRequests(InviteAdminRequest invitation) {
 
@@ -60,11 +59,11 @@ public class AdminServiceImpl implements AdminService {
         request.setHtmlContent(String.format(adminMail, adminName, link));
 
         var response = mailService.sendHTMLMail(request);
-        if (response != null) return globalResponse
+        if (response == null) throw new DrideException(EMAIL_EXCEPTION);
+
+        return globalResponse
                 .message(String.format(ADMIN_IV, admin.getId()))
                 .build();
-
-        throw new DrideException(EMAIL_EXCEPTION);
     }
 
     @Override
@@ -86,9 +85,7 @@ public class AdminServiceImpl implements AdminService {
         StringBuilder builder = new StringBuilder();
         String[] splitNames = admin.getUser().getName().split(REGX);
         Arrays.stream(splitNames).forEach(eachName -> builder.append(eachName.charAt(0)));
-//        for (String eachName : splitNames) {
-//            builder.append(eachName.charAt(0));
-//        }
+
         String toUppercase = builder.toString().toUpperCase();
         String adminId = String.valueOf(admin.getId());
         String userId = String.valueOf(admin.getUser().getId());
@@ -119,9 +116,8 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public AdminDTO getAdminByEmail(String email) {
-        Admin admin = adminRepository.findAdminByUser_Email(email)
-                .orElseThrow(UserNotFoundException::new);
-        return modelMapper.map(admin, AdminDTO.class);
+        return modelMapper.map(adminRepository.findByUserEmail(email)
+                .orElseThrow(UserNotFoundException::new), AdminDTO.class);
     }
 
     @Override

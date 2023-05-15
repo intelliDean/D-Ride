@@ -7,7 +7,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 
-
 @Component
 @AllArgsConstructor
 public class DrideAuthenticationManager implements AuthenticationManager {

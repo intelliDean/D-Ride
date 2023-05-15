@@ -1,6 +1,7 @@
 package dean.project.Dride.services.user_service;
 
 import dean.project.Dride.config.security.users.AuthenticatedUser;
+import dean.project.Dride.data.dto.request.CreateUser;
 import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
 import dean.project.Dride.data.dto.response.entity_dtos.UserDTO;
 import dean.project.Dride.data.models.Admin;
@@ -23,12 +24,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.lang.reflect.Type;
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Optional;
 
+import static dean.project.Dride.data.models.Role.PASSENGER;
 import static dean.project.Dride.utilities.Constants.*;
 
 
@@ -41,6 +46,7 @@ public class UserServiceImpl implements UserService {
     private final AdminService adminService;
     private final ModelMapper modelMapper;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
     private final GlobalApiResponse.GlobalApiResponseBuilder globalResponse;
 
     @Override
@@ -53,6 +59,15 @@ public class UserServiceImpl implements UserService {
         return globalResponse
                 .message(SUCCESS)
                 .build();
+    }
+    public User createUser(CreateUser create) {
+        User user = new User();
+        user.setName(create.getName());
+        user.setEmail(create.getEmail());
+        user.setPassword(passwordEncoder.encode(create.getPassword()));
+        user.setCreatedAt(LocalDateTime.now().toString());
+        user.setRoles(new HashSet<>());
+        return user;
     }
 
     private UserRecord getUserRecord(Long appUserId) {

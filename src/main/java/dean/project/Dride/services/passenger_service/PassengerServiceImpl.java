@@ -21,6 +21,7 @@ import dean.project.Dride.services.cloud.CloudService;
 import dean.project.Dride.services.mocklocation_service.MockLocationService;
 import dean.project.Dride.services.notification.MailService;
 import dean.project.Dride.services.ride_services.RideService;
+import dean.project.Dride.services.user_service.UserService;
 import dean.project.Dride.utilities.DrideUtilities;
 import dean.project.Dride.utilities.Paginate;
 import lombok.AllArgsConstructor;
@@ -54,7 +55,6 @@ import static dean.project.Dride.utilities.Constants.*;
 public class PassengerServiceImpl implements PassengerService {
     private final PassengerRepository passengerRepository;
     private final CloudService cloudService;
-
     private MockLocationService mockLocationService;
     private final PasswordEncoder passwordEncoder;
     private final DistanceConfig directionConfig;
@@ -64,9 +64,8 @@ public class PassengerServiceImpl implements PassengerService {
     private final GlobalApiResponse.GlobalApiResponseBuilder globalResponse;
 
     @Override
-    public GlobalApiResponse register(RegisterPassengerRequest registerRequest) {
-
-        Passenger passenger = createPassenger(registerRequest);
+    public GlobalApiResponse register(RegisterPassengerRequest request) {
+        Passenger passenger = createPassenger(request);
         Passenger savedPassenger = passengerRepository.save(passenger);
 
         String welcomeMail = sendWelcomeMail(savedPassenger);

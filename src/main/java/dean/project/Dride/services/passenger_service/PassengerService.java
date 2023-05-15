@@ -1,10 +1,7 @@
 package dean.project.Dride.services.passenger_service;
 
 import com.github.fge.jsonpatch.JsonPatch;
-import dean.project.Dride.data.dto.request.BookRideRequest;
-import dean.project.Dride.data.dto.request.RateDriverRequest;
-import dean.project.Dride.data.dto.request.RegisterPassengerRequest;
-import dean.project.Dride.data.dto.request.RideRequest;
+import dean.project.Dride.data.dto.request.*;
 import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
 import dean.project.Dride.data.dto.response.api_response.BookRideResponse;
 import dean.project.Dride.data.dto.response.entity_dtos.PassengerDTO;
@@ -14,7 +11,7 @@ import dean.project.Dride.utilities.Paginate;
 import java.util.Optional;
 
 public interface PassengerService {
-    GlobalApiResponse register(RegisterPassengerRequest registerRequest);
+    GlobalApiResponse register(RegisterPassengerRequest request);
     PassengerDTO getPassengerById(Long passengerId);
     void savePassenger(Passenger passenger);
     Optional<Passenger> getPassengerBy(Long passengerId);

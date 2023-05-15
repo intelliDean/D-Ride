@@ -15,6 +15,7 @@ import dean.project.Dride.exceptions.UserNotFoundException;
 import dean.project.Dride.services.cloud.CloudService;
 import dean.project.Dride.services.notification.MailService;
 import dean.project.Dride.services.ride_services.RideService;
+import dean.project.Dride.services.user_service.UserService;
 import dean.project.Dride.utilities.DrideUtilities;
 import dean.project.Dride.utilities.Paginate;
 import lombok.AllArgsConstructor;
@@ -33,6 +34,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Optional;
 
+import static dean.project.Dride.data.models.Role.DRIVER;
 import static dean.project.Dride.exceptions.ExceptionMessage.*;
 import static dean.project.Dride.utilities.Constants.*;
 import static dean.project.Dride.utilities.DriverUrls.COMPLETED;
@@ -115,7 +117,7 @@ public class DriverServiceImpl implements DriverService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setCreatedAt(LocalDateTime.now().toString());
         user.setRoles(new HashSet<>());
-        user.getRoles().add(Role.DRIVER);
+        user.getRoles().add(DRIVER);
         return user;
     }
 
@@ -241,6 +243,7 @@ public class DriverServiceImpl implements DriverService {
                 .fare(ride.getFare())   //todo: I should call google Api to calculate the eventual fare
                 .build();
     }
+}
 
 //    public static char[] reverse(char[] arrays) {
 //        for (int i = 0, j = arrays.length - 1; i < arrays.length/2; i++, j--) {
@@ -283,4 +286,4 @@ public class DriverServiceImpl implements DriverService {
 //         System.out.println(Arrays.toString(merge(array1, array2)));
 //
 //     }
-}
+

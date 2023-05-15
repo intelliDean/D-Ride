@@ -1,6 +1,7 @@
 package dean.project.Dride.service;
 
 import dean.project.Dride.data.dto.request.BookRideRequest;
+import dean.project.Dride.data.dto.request.CreateUser;
 import dean.project.Dride.data.dto.request.Location;
 import dean.project.Dride.data.dto.request.RegisterPassengerRequest;
 import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;

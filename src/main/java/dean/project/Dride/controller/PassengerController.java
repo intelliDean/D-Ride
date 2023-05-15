@@ -1,6 +1,7 @@
 package dean.project.Dride.controller;
 
 import com.github.fge.jsonpatch.JsonPatch;
+import dean.project.Dride.data.dto.request.CreateUser;
 import dean.project.Dride.data.dto.request.RateDriverRequest;
 import dean.project.Dride.data.dto.request.RegisterPassengerRequest;
 import dean.project.Dride.data.dto.request.RideRequest;
@@ -28,8 +29,8 @@ public class PassengerController {
 
     @PostMapping
     public ResponseEntity<GlobalApiResponse> register(
-            @RequestBody RegisterPassengerRequest registerPassengerRequest) {
-        GlobalApiResponse registerResponse = passengerService.register(registerPassengerRequest);
+            @RequestBody RegisterPassengerRequest create) {
+        GlobalApiResponse registerResponse = passengerService.register(create);
         return ResponseEntity.status(HttpStatus.CREATED).body(registerResponse);
     }
 

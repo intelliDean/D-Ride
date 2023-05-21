@@ -2,9 +2,9 @@ package dean.project.Dride.config.app;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dean.project.Dride.config.distance.DistanceConfig;
-import dean.project.Dride.config.mail.MailConfig;
 import dean.project.Dride.config.security.util.JwtUtil;
 import dean.project.Dride.config.sms.SMSConfig;
 import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
@@ -45,20 +45,14 @@ public class AppConfig {
     private String jwtSecret;
 
 
-  @Bean
+    @Bean
     public Cloudinary cloudinary() {
         return new Cloudinary(
                 ObjectUtils.asMap(
                         CLOUD_NAME, cloudName,
-                        API_KEY, cloudApiKey,
+                        CLOUD_API_KEY, cloudApiKey,
                         API_SECRET, apiSecret));
     }
-
-    @Bean
-    public MailConfig mailConfig() {
-        return new MailConfig(mailApiKey, mailUrl);
-    }
-
 
     @Bean
     public DistanceConfig distanceConfig() {
@@ -73,7 +67,11 @@ public class AppConfig {
 
     @Bean
     public WebClient getWebClientBuilder() {
-        return WebClient.builder().build();
+        return WebClient
+                .builder()
+                .baseUrl(mailUrl)
+                .defaultHeader(MAIL_API_KEY, mailApiKey)
+                .build();
     }
 
     @Bean
@@ -92,9 +90,11 @@ public class AppConfig {
     }
 
 
-    @Bean
+     @Bean
     public ObjectMapper objectMapper() {
-        return new ObjectMapper();
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        return mapper;
     }
 
     @Bean

@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
 @Slf4j
 class AdminServiceImplTest {
-     @Autowired
+    @Autowired
     private AdminService adminService;
     private InviteAdminRequest inviteAdminRequests;
 

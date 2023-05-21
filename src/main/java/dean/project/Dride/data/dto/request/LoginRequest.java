@@ -7,6 +7,7 @@ import lombok.*;
 @Getter
 @Setter
 @Builder
-public class AcceptRideRequest {
-    private Long passengerId;
+public class LoginRequest {
+    private String email;
+    private String password;
 }

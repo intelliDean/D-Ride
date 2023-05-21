@@ -8,8 +8,7 @@ import lombok.*;
 @Getter
 @Setter
 @Builder
-public class RateDriverRequest {
-    private Long passengerId;
-    private Long driverId;
+public class RateRequest {
+    private Long rateeId;
     private Rating rating;
 }

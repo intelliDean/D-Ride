@@ -15,4 +15,5 @@ public interface RideService {
     Paginate<RideDTO> getAllRidesByDriver(Long driverId, int pageNumber);
     Paginate<RideDTO> getAllRidesByPassenger(Long passengerId, int pageNumber);
     Paginate<RideDTO> getAllRidesByPassengerAndDriver(AllRideRequest request);
+
 }

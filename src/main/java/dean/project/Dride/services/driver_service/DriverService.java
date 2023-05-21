@@ -10,9 +10,12 @@ import dean.project.Dride.utilities.Paginate;
 import java.util.Optional;
 
 public interface DriverService {
-    GlobalApiResponse register(RegisterDriverRequest request);
+    GlobalApiResponse register(RegisterRequest request);
 
-    GlobalApiResponse completeRegistration(Long driverId, CompleteDriverRequest driverRequest, RefereeRequest refereeRequest);
+    GlobalApiResponse completeRegistration(
+            Long driverId,
+            CompleteDriverRequest driverRequest,
+            RefereeRequest refereeRequest);
 
     Optional<Driver> getDriverBy(Long driverId);
 
@@ -30,7 +33,9 @@ public interface DriverService {
 
     Paginate<DriverDTO> getAllDrivers(int pageNumber);
 
-    DriverDTO updateDriver(Long driverId, JsonPatch jsonPatch);
+    DriverDTO updateDriver(JsonPatch jsonPatch);
 
     Optional<Driver> getDriverByUserId(Long userId);
+
+    GlobalApiResponse ratePassenger(RateRequest rateRequest);
 }

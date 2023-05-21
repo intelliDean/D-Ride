@@ -1,5 +1,6 @@
 package dean.project.Dride.controller;
 
+import com.github.fge.jsonpatch.JsonPatch;
 import dean.project.Dride.data.dto.request.AdminDetailsRequest;
 import dean.project.Dride.data.dto.request.InviteAdminRequest;
 import dean.project.Dride.data.dto.response.entity_dtos.AdminDTO;
@@ -30,6 +31,11 @@ public class AdminController {
         GlobalApiResponse response = adminService.sendInviteRequests(invitationRequest);
         return ResponseEntity.ok(response);
     }
+    @PatchMapping(UPDATE)
+    public ResponseEntity<GlobalApiResponse> updateAdmin (@RequestBody JsonPatch jsonPatch) {
+        GlobalApiResponse response = adminService.updateAdmin(jsonPatch);
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping(ADMIN_DETAILS)
     public ResponseEntity<AdminDTO> adminDetails(@RequestBody AdminDetailsRequest request) {
@@ -45,8 +51,8 @@ public class AdminController {
     }
 
     @GetMapping(GET)
-    public ResponseEntity<AdminDTO> getAdminById(@RequestParam Long adminId) {
-        AdminDTO admin = adminService.getAdminById(adminId);
+    public ResponseEntity<AdminDTO> getAdminById() {
+        AdminDTO admin = adminService.getCurrentAdmin();
         return ResponseEntity.ok(admin);
     }
 

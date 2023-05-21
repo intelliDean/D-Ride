@@ -1,13 +1,13 @@
 package dean.project.Dride.config.security.filters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dean.project.Dride.config.security.users.AuthenticatedUser;
 import dean.project.Dride.config.security.util.JwtUtil;
+import dean.project.Dride.data.models.Role;
 import dean.project.Dride.data.models.User;
 import dean.project.Dride.exceptions.DrideException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.impl.TextCodec;
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -16,30 +16,27 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
-import java.math.BigInteger;
-import java.time.Instant;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static dean.project.Dride.utilities.Constants.AUTHENTICATION_FAILED;
-import static dean.project.Dride.utilities.Constants.ISSUER;
-import static dean.project.Dride.utilities.SecurityUrls.*;
+import static dean.project.Dride.utilities.SecurityUrls.ACCESS_TOKEN;
+import static dean.project.Dride.utilities.SecurityUrls.REFRESH_TOKEN;
 
 @AllArgsConstructor
 public class DrideAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
-    private final UserDetailsService userDetailsService;
-    //private final Key key;
+    private final ObjectMapper mapper;
+
 
 
     /*todo
@@ -49,29 +46,30 @@ public class DrideAuthenticationFilter extends UsernamePasswordAuthenticationFil
      * 3. the method authenticate passes it to the AuthenticationProvide and it's finally authenticated by method authenticate()
      * 4. after authentication, it's passed to successfulAuthentication in UsernamePasswordAuthenticationFilter which then generate jwt for it*/
 
-
     @Override
     public Authentication attemptAuthentication(
             HttpServletRequest request,
             HttpServletResponse response) throws AuthenticationException {
 
-        ObjectMapper mapper = new ObjectMapper();
-        // 1. Create an authentication object that contains authentication credentials,
-        //    but is not yet authenticated.
-        User user;
         try {
-            user = mapper.readValue(request.getInputStream(), User.class);
+            User user = mapper.readValue(request.getInputStream(), User.class);
+            // 1. Create an authentication object that contains authentication credentials,
+            //    but is not yet authenticated.
             Authentication authentication =
                     new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword());
+            //Note: Only use username and password to authenticate, do not add authorities until after authentication
             // 2. Delegate authentication responsibility for authentication object in 1 to the manager
             // 3. Get back the now authenticated authentication object from the manager
-            Authentication authenticationResult =
-                    authenticationManager.authenticate(authentication);
-            // 4. store authenticated authentication object in the security context
-            if (authenticationResult != null) return getAuthentication(authenticationResult);
+            Authentication authenticationResult = authenticationManager.authenticate(authentication);
+
+            if (authenticationResult != null) {
+                // 4. store authenticated authentication object in the security context
+                return getAuthentication(authenticationResult);
+            }
         } catch (IOException e) {
             throw new DrideException(e.getMessage());
         }
+
         throw new DrideException(AUTHENTICATION_FAILED);
     }
 
@@ -80,6 +78,8 @@ public class DrideAuthenticationFilter extends UsernamePasswordAuthenticationFil
         return SecurityContextHolder.getContext().getAuthentication();
     }
 
+
+
     @Override
     protected void successfulAuthentication(
             HttpServletRequest request,
@@ -87,47 +87,35 @@ public class DrideAuthenticationFilter extends UsernamePasswordAuthenticationFil
             FilterChain chain,
             Authentication authResult) throws IOException {
 
+        Map<String, Object> claims = new HashMap<>();
+
+        String user = (String) authResult.getPrincipal();
+        authResult.getAuthorities().forEach(authority -> claims.put("claim", authority));
+
+
+        String accessToken = jwtUtil.generateAccessToken(claims, user);
+        String refreshToken = jwtUtil.generateRefreshToken(user);
+
+        Map<String, String> tokens = Map.of(ACCESS_TOKEN, accessToken, REFRESH_TOKEN, refreshToken);
+
         ObjectMapper mapper = new ObjectMapper();
-
-        Map<String, Object> claims = authResult.getAuthorities().stream()
-                .collect(Collectors.toMap(k -> CLAIM, v -> v));
-
-        UserDetails user = userDetailsService.loadUserByUsername((String) authResult.getPrincipal());
-        String accessToken = generateAccessToken(claims, user);
-
-        String refreshToken = generateRefreshToken();
-
-        Map<String, String> tokens = new HashMap<>();
-        tokens.put(ACCESS_TOKEN, accessToken);
-        tokens.put(REFRESH_TOKEN, refreshToken);
-
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         mapper.writeValue(response.getOutputStream(), tokens);
     }
 
-    private String generateRefreshToken() {
-        Date refreshExpiration = Date.from(Instant.now()
-                .plusSeconds(BigInteger.valueOf(3600).longValue() *
-                        BigInteger.valueOf(24).intValue()));
+//    @Override
+//    protected void unsuccessfulAuthentication(
+//            HttpServletRequest request,
+//            HttpServletResponse response,
+//            AuthenticationException failed) throws IOException, ServletException {
+//        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+//        mapper.writeValue(response.getOutputStream(), "The authentication attempt failed");
+//        super.unsuccessfulAuthentication(request, response, failed);
+//    }
+//
+//    @Override
+//    public void setFilterProcessesUrl(String filterProcessesUrl) {
+//        super.setFilterProcessesUrl("api/v1/auth/login");
+//    }
 
-        return Jwts.builder()
-                .setIssuer(ISSUER)
-                .setExpiration(refreshExpiration)
-                .signWith(SignatureAlgorithm.HS512, jwtUtil.getJwtSecret())
-                .compact();
-    }
-
-    private String generateAccessToken(Map<String, Object> claims, UserDetails user) {
-        Date accessExpiration = Date.from(Instant.now()
-                .plusSeconds(BigInteger.valueOf(60).longValue() *
-                        BigInteger.valueOf(60).intValue()));
-        return Jwts.builder()
-                .setIssuer(ISSUER)
-                .setIssuedAt(new Date())
-                .setClaims(claims)
-                .setSubject(user.getUsername())
-                .setExpiration(accessExpiration)
-                .signWith(SignatureAlgorithm.HS512, TextCodec.BASE64.decode(jwtUtil.getJwtSecret()))
-                .compact();
-    }
 }

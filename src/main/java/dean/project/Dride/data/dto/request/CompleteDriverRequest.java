@@ -9,8 +9,6 @@ import lombok.*;
 @Setter
 @Builder
 public class CompleteDriverRequest {
-    private String phoneNumber;
-    private Gender gender;
     private Integer houseNumber;
     private String street;
     private String city;
@@ -19,4 +17,7 @@ public class CompleteDriverRequest {
     private String accountName;
     private String accountNumber;
     private String bankName;
+    private String phoneNumber;
+    private Gender gender;
+    //private RefereeRequest refereeRequest;
 }

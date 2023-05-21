@@ -9,7 +9,6 @@ import lombok.*;
 @Setter
 @Builder
 public class BookRideRequest {
-    private Long passengerId;
     private Location origin;
     private Location destination;
 }

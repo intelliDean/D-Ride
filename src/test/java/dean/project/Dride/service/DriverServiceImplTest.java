@@ -1,6 +1,6 @@
 package dean.project.Dride.service;
 
-import dean.project.Dride.data.dto.request.RegisterDriverRequest;
+import dean.project.Dride.data.dto.request.RegisterRequest;
 import dean.project.Dride.services.driver_service.DriverService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,13 +27,13 @@ class DriverServiceImplTest {
 
     @Autowired
     private DriverService driverService;
-    private RegisterDriverRequest request;
+    private RegisterRequest request;
     @BeforeEach
     void setUp() {
-        request=new RegisterDriverRequest();
-        request.setPassword("test_password");
-        request.setName("test driver");
-        request.setEmail("test@email.com");
+        request=new RegisterRequest();
+        request.getCreateUser().setPassword("test_password");
+        request.getCreateUser().setName("test driver");
+        request.getCreateUser().setEmail("test@email.com");
     }
 
     @Test

@@ -1,5 +1,9 @@
 package dean.project.Dride.services.admin_service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.fge.jsonpatch.JsonPatch;
+import com.github.fge.jsonpatch.JsonPatchException;
 import dean.project.Dride.data.dto.request.AdminDetailsRequest;
 import dean.project.Dride.data.dto.request.EmailNotificationRequest;
 import dean.project.Dride.data.dto.request.InviteAdminRequest;
@@ -11,6 +15,7 @@ import dean.project.Dride.data.models.User;
 import dean.project.Dride.data.repositories.AdminRepository;
 import dean.project.Dride.exceptions.DrideException;
 import dean.project.Dride.exceptions.UserNotFoundException;
+import dean.project.Dride.services.user_service.CurrentUserService;
 import dean.project.Dride.services.notification.MailService;
 import dean.project.Dride.utilities.DrideUtilities;
 import dean.project.Dride.utilities.Paginate;
@@ -31,17 +36,21 @@ import java.util.Optional;
 
 import static dean.project.Dride.data.models.Role.ADMINISTRATOR;
 import static dean.project.Dride.exceptions.ExceptionMessage.EMAIL_EXCEPTION;
+import static dean.project.Dride.exceptions.ExceptionMessage.UPDATE_FAILED;
 import static dean.project.Dride.utilities.Constants.*;
 
 
 @Service
 @AllArgsConstructor
 public class AdminServiceImpl implements AdminService {
+    private final CurrentUserService currentUserService;
     private final AdminRepository adminRepository;
     private final MailService mailService;
     private final PasswordEncoder encoder;
     private final ModelMapper modelMapper;
+    private final ObjectMapper objectMapper;
     private final GlobalApiResponse.GlobalApiResponseBuilder globalResponse;
+
     @Override
     public GlobalApiResponse sendInviteRequests(InviteAdminRequest invitation) {
 
@@ -62,8 +71,12 @@ public class AdminServiceImpl implements AdminService {
         if (response == null) throw new DrideException(EMAIL_EXCEPTION);
 
         return globalResponse
-                .message(String.format(ADMIN_IV, admin.getId()))
+                .message(String.format(ADMIN_IV, admin.getUser().getName()))
                 .build();
+    }
+    private Admin currentAdmin() {
+        return getAdminByUserId(currentUserService.currentUser().getId())
+                .orElseThrow(UserNotFoundException::new);
     }
 
     @Override
@@ -93,17 +106,15 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public AdminDTO getAdminById(Long adminId) {
-        Admin admin = adminRepository.findById(adminId)
-                .orElseThrow(UserNotFoundException::new);
-        return modelMapper.map(admin, AdminDTO.class);
+    public AdminDTO getCurrentAdmin() {
+        return modelMapper.map(
+                currentAdmin(),
+                AdminDTO.class);
     }
-
     @Override
     public void saveAdmin(Admin admin) {
         adminRepository.save(admin);
     }
-
     @Override
     public Paginate<AdminDTO> getAllAdmins(int pageNumber) {
         int page = pageNumber < 1 ? 0 : pageNumber - 1;
@@ -115,14 +126,30 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    public GlobalApiResponse updateAdmin(JsonPatch jsonPatch) {
+        Admin admin = currentAdmin();
+        JsonNode node = objectMapper.convertValue(admin, JsonNode.class);
+        try {
+            JsonNode updatedNode = jsonPatch.apply(node);
+            Admin updatedAdmin = objectMapper.convertValue(updatedNode, Admin.class);
+            adminRepository.save(updatedAdmin);
+            return globalResponse
+                    .message(SUCCESS)
+                    .build();
+        } catch (JsonPatchException e) {
+            throw new DrideException(UPDATE_FAILED);
+        }
+    }
+
+    @Override
     public AdminDTO getAdminByEmail(String email) {
         return modelMapper.map(adminRepository.findByUserEmail(email)
                 .orElseThrow(UserNotFoundException::new), AdminDTO.class);
     }
 
     @Override
-    public Optional<Admin> getAdminByUserId(Long userId) {
-        return adminRepository.findAdminByUser_Id(userId);
+    public Optional<Admin> getAdminByUserId(Long adminId) {
+        return adminRepository.findAdminByUser_Id(adminId);
     }
 
     private Admin createAdminProfile(InviteAdminRequest invitation) {

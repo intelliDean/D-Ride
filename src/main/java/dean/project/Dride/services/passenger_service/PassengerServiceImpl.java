@@ -17,11 +17,11 @@ import dean.project.Dride.data.models.Status;
 import dean.project.Dride.data.models.User;
 import dean.project.Dride.data.repositories.PassengerRepository;
 import dean.project.Dride.exceptions.UserNotFoundException;
+import dean.project.Dride.services.user_service.CurrentUserService;
 import dean.project.Dride.services.cloud.CloudService;
 import dean.project.Dride.services.mocklocation_service.MockLocationService;
 import dean.project.Dride.services.notification.MailService;
 import dean.project.Dride.services.ride_services.RideService;
-import dean.project.Dride.services.user_service.UserService;
 import dean.project.Dride.utilities.DrideUtilities;
 import dean.project.Dride.utilities.Paginate;
 import lombok.AllArgsConstructor;
@@ -35,13 +35,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -53,6 +51,7 @@ import static dean.project.Dride.utilities.Constants.*;
 @AllArgsConstructor
 @Slf4j
 public class PassengerServiceImpl implements PassengerService {
+    private final CurrentUserService currentUserService;
     private final PassengerRepository passengerRepository;
     private final CloudService cloudService;
     private MockLocationService mockLocationService;
@@ -64,8 +63,12 @@ public class PassengerServiceImpl implements PassengerService {
     private final GlobalApiResponse.GlobalApiResponseBuilder globalResponse;
 
     @Override
-    public GlobalApiResponse register(RegisterPassengerRequest request) {
-        Passenger passenger = createPassenger(request);
+    public GlobalApiResponse register(RegisterRequest request) {
+        User user = DrideUtilities.createUser(request.getCreateUser());
+        user.getRoles().add(PASSENGER);
+        Passenger passenger = Passenger.builder()
+                .user(user)
+                .build();
         Passenger savedPassenger = passengerRepository.save(passenger);
 
         String welcomeMail = sendWelcomeMail(savedPassenger);
@@ -73,19 +76,6 @@ public class PassengerServiceImpl implements PassengerService {
         return welcomeMail == null
                 ? globalResponse.message(PASSENGER_REG_FAILED).build()
                 : globalResponse.id(savedPassenger.getId()).message(REG_SUCCESS).build();
-    }
-
-    private Passenger createPassenger(RegisterPassengerRequest registerRequest) {
-        User user = new User();
-        user.setName(registerRequest.getName());
-        user.setEmail(registerRequest.getEmail());
-        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        user.setCreatedAt(LocalDateTime.now().toString());
-        user.setRoles(new HashSet<>());
-        user.getRoles().add(PASSENGER);
-        return Passenger.builder()
-                .user(user)
-                .build();
     }
 
     private String sendWelcomeMail(Passenger savedPassenger) {
@@ -101,12 +91,18 @@ public class PassengerServiceImpl implements PassengerService {
         mailRequest.setHtmlContent(content);
         return mailService.sendHTMLMail(mailRequest);
     }
+    private User currentUser() {
+        return currentUserService.currentUser();
+    }
 
     @Override
-    public PassengerDTO getPassengerById(Long passengerId) {
-        Passenger passenger = passengerRepository.findById(passengerId)
-                .orElseThrow(UserNotFoundException::new);
+    public PassengerDTO getPassenger() {
+        Passenger passenger = currentPassenger();
         return modelMapper.map(passenger, PassengerDTO.class);
+    }
+    private Passenger currentPassenger() {
+        return passengerRepository.findById(currentUser().getId())
+                .orElseThrow(UserNotFoundException::new);
     }
 
     @Override
@@ -115,14 +111,9 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     @Override
-    public Optional<Passenger> getPassengerBy(Long passengerId) {
-        return passengerRepository.findById(passengerId);
-    }
-
-    @Override
-    public PassengerDTO updatePassenger(Long passengerId, JsonPatch updatePayload) {
+    public PassengerDTO updatePassenger(JsonPatch updatePayload) {
         ObjectMapper mapper = new ObjectMapper();
-        Passenger foundPassenger = getInnerPassenger(passengerId);
+        Passenger foundPassenger = currentPassenger();
         //Passenger Object to node
         JsonNode node = mapper.convertValue(foundPassenger, JsonNode.class);
         try {
@@ -150,18 +141,13 @@ public class PassengerServiceImpl implements PassengerService {
 
 
     @Override
-    public void deletePassenger(Long id) {
-        passengerRepository.deleteById(id);
-    }
-
-    private Passenger getInnerPassenger(Long id) {
-        return passengerRepository.findById(id)
-                .orElseThrow(UserNotFoundException::new);
+    public void deletePassenger() {
+        passengerRepository.deleteById(currentPassenger().getId());
     }
 
     @Override
     public GlobalApiResponse attemptBookRide(BookRideRequest bookRideRequest) {
-        Passenger foundPassenger = getInnerPassenger(bookRideRequest.getPassengerId());
+        Passenger foundPassenger = currentPassenger();
         if (foundPassenger == null) throw new UserNotFoundException();
 
         var response = mockLocationService
@@ -194,7 +180,6 @@ public class PassengerServiceImpl implements PassengerService {
     @Override
     public BookRideResponse<?> bookRide(RideRequest request) {
         BookRideRequest bookRideRequest = BookRideRequest.builder()
-                .passengerId(request.getPassengerId())
                 .origin(request.getOrigin())
                 .destination(request.getDestination())
                 .build();
@@ -208,11 +193,9 @@ public class PassengerServiceImpl implements PassengerService {
                     .build());
         }
 
-        Passenger passenger = getInnerPassenger(request.getPassengerId());
-
         Ride ride = Ride.builder()
                 .fare(response.getFare())
-                .passenger(passenger)
+                .passenger(currentPassenger())
                 .destination(request.getDestination().toString())
                 .origin(request.getOrigin().toString())
                 .bookTime(LocalDateTime.now().toString())
@@ -224,9 +207,9 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     @Override
-    public GlobalApiResponse rateDriver(RateDriverRequest request) {
+    public GlobalApiResponse rateDriver(RateRequest request) {
         Ride ride = rideService.getRideByPassengerIdAndDriverIdRideStatus(
-                request.getPassengerId(), request.getDriverId(), Status.END_RIDE);
+                currentPassenger().getId(), request.getRateeId(), Status.END_RIDE);
         ride.setDriverRating(request.getRating());
         rideService.save(ride);
         String driverName = ride.getDriver().getUser().getName();

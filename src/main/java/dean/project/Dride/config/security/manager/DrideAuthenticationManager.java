@@ -11,8 +11,9 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class DrideAuthenticationManager implements AuthenticationManager {
     private final AuthenticationProvider authenticationProvider;
+
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-         return authenticationProvider.authenticate(authentication);
+        return authenticationProvider.authenticate(authentication);
     }
 }

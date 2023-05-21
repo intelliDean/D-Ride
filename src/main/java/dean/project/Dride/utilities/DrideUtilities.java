@@ -1,12 +1,16 @@
 package dean.project.Dride.utilities;
 
+import dean.project.Dride.data.dto.request.CreateUser;
 import dean.project.Dride.data.dto.request.Location;
+import dean.project.Dride.data.models.User;
 import dean.project.Dride.exceptions.DrideException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.impl.TextCodec;
 import io.jsonwebtoken.security.SignatureException;
+import lombok.AllArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -14,15 +18,29 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.stream.Collectors;
 
 import static dean.project.Dride.utilities.Constants.*;
 
-
+@AllArgsConstructor
 public class DrideUtilities {
+    private static PasswordEncoder passwordEncoder;
+    public static User createUser(CreateUser createUser) {
+        return User.builder()
+                .name(createUser.getName())
+                .email(createUser.getEmail())
+                .password(passwordEncoder.encode(createUser.getPassword()))
+                .createdAt(LocalDateTime.now().toString())
+                .roles(new HashSet<>())
+                .build();
+    }
+
+
     public static String driverWelcomeMail() {
         try (BufferedReader reader = new BufferedReader(new FileReader(DRIVER_WELCOME_MAIL_FILEPATH))) {
             return reader.lines().collect(Collectors.joining());
@@ -48,7 +66,7 @@ public class DrideUtilities {
     }
 
     public static String generateVerificationLink(Long userId) {
-        return USER_VERIFICATION_BASE_URL + USER_ID + userId + TOKEN + generateVerificationToken();
+        return "localhost:9090/api/v1/user/account/verify" + "?userId=" + userId + "&token=" + generateVerificationToken();
     }
 
     private static String generateVerificationToken() {

@@ -4,23 +4,23 @@ package dean.project.Dride.config.security.filters;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dean.project.Dride.config.security.util.JwtUtil;
 import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
-import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static dean.project.Dride.utilities.AdminUrls.ADMIN_BASE_URL;
@@ -29,71 +29,61 @@ import static dean.project.Dride.utilities.Constants.LOGIN_URL;
 import static dean.project.Dride.utilities.SecurityUrls.*;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
+@Slf4j
 @AllArgsConstructor
 public class DrideAuthorizationFilter extends OncePerRequestFilter {
-
+    private final UserDetailsService userDetailsService;
+    private final GlobalApiResponse.GlobalApiResponseBuilder globalResponse;
     private final JwtUtil jwtUtil;
+    private final ObjectMapper objectMapper;
 
     @Override
-    protected void doFilterInternal(
-            HttpServletRequest request,
-            @NonNull HttpServletResponse response,
-            @NonNull FilterChain filterChain) throws ServletException, IOException {
-
-        ObjectMapper mapper = new ObjectMapper();
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
         String authHeader = request.getHeader(AUTHORIZATION);
+        String servletPath = request.getServletPath();
+        UserDetails userDetails;
+        String email;
 
-        UserDetails userDetails = (UserDetails) request.getUserPrincipal();
-
-        boolean toLogin = request.getServletPath().equals(LOGIN_URL);
-        boolean toRegisterDriver = request.getServletPath().equals(DRIVER_REGISTER);
-        boolean toRegisterPassenger = request.getServletPath().equals(PASSENGER_REGISTER);
-        boolean toInviteAdmin = request.getServletPath().equals(ADMIN_BASE_URL);
-        boolean toVerifyUser = request.getServletPath().equals(VERIFY_USER);
-        boolean adminDetails = request.getServletPath().equals(ADMIN_DETAILS);
-
-        if (toLogin || toRegisterDriver || toRegisterPassenger ||
-                toInviteAdmin || toVerifyUser || adminDetails) {
+        if (grantFreeAccessTo(servletPath)) {
             filterChain.doFilter(request, response);
         } else {
             if (StringUtils.hasText(authHeader) && StringUtils.startsWithIgnoreCase(authHeader, BEARER)) {
-                String token = request.getHeader(AUTHORIZATION);
-                String jwt = token.substring(BEARER.length());   //"Bearer ".length()
-                boolean tokenIsSigned = Jwts.parserBuilder()
-                        .setSigningKey(jwtUtil.getJwtSecret())
-                        .build()
-                        .isSigned(jwt);
+                String token = authHeader.substring(BEARER.length());
 
-                if (tokenIsSigned) {
-                    savePrincipalInSecurityContextHolder(userDetails, jwt);
+                email = jwtUtil.extractUsernameFromToken(token);
+                userDetails = userDetailsService.loadUserByUsername(email);
+
+                if (jwtUtil.isTokenSigned(token)) {
+                    savedToContext(userDetails);
                     filterChain.doFilter(request, response);
-
                 } else {
-                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                    mapper.writeValue(response.getOutputStream(),
-                            GlobalApiResponse.builder()
-                                    .message(AUTHENTICATION_FAILED)
-                                    .build());
+                    handleAuthenticationFailure(response);
                 }
             }
         }
     }
 
-    private void savePrincipalInSecurityContextHolder(UserDetails userDetails, String jwt) {
-        List<String> roles = new ArrayList<>();
-        var jwtMap = Jwts.parserBuilder()
-                .setSigningKey(jwtUtil.getJwtSecret())
-                .build()
-                .parseClaimsJws(jwt)
-                .getBody();
-        jwtMap.forEach((k, v) -> roles.add(v.toString()));
-
-        List<SimpleGrantedAuthority> roleLists = roles.stream()
-                .map(SimpleGrantedAuthority::new)
-                .toList();
-
+    private static void savedToContext(UserDetails userDetails) {
         UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(userDetails, null, roleLists);
+                new UsernamePasswordAuthenticationToken(
+                        userDetails.getUsername(), null, userDetails.getAuthorities());
+        //Note: After authentication, do not save the  user password in security context holder.
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
     }
+
+    private boolean grantFreeAccessTo(String servletPath) {
+        List<String> allowedPaths = Arrays.asList(
+                LOGIN_URL, DRIVER_REGISTER, PASSENGER_REGISTER,
+                ADMIN_BASE_URL, VERIFY_USER, ADMIN_DETAILS);
+        return allowedPaths.contains(servletPath);
+    }
+
+    private void handleAuthenticationFailure(HttpServletResponse response) throws IOException {
+        GlobalApiResponse failureMessage = globalResponse.message(AUTHENTICATION_FAILED).build();
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        objectMapper.writeValue(response.getOutputStream(), failureMessage);
+    }
+
 }

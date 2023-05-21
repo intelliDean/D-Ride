@@ -11,16 +11,15 @@ import dean.project.Dride.utilities.Paginate;
 import java.util.Optional;
 
 public interface PassengerService {
-    GlobalApiResponse register(RegisterPassengerRequest request);
-    PassengerDTO getPassengerById(Long passengerId);
+    GlobalApiResponse register(RegisterRequest request);
+    PassengerDTO getPassenger();
     void savePassenger(Passenger passenger);
-    Optional<Passenger> getPassengerBy(Long passengerId);
-    PassengerDTO updatePassenger(Long passengerId, JsonPatch updatePayload);
+    PassengerDTO updatePassenger(JsonPatch updatePayload);
     Paginate<PassengerDTO> getAllPassengers(int pageNumber);
-    void deletePassenger(Long id);
+    void deletePassenger();
     GlobalApiResponse attemptBookRide(BookRideRequest bookRideRequest);
     PassengerDTO getPassengerByEmail(String email);
     BookRideResponse<?> bookRide(RideRequest request);
-    GlobalApiResponse rateDriver(RateDriverRequest request);
+    GlobalApiResponse rateDriver(RateRequest request);
     Optional<Passenger> getPassengerByUserId(Long userId);
 }

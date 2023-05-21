@@ -1,9 +1,11 @@
 package dean.project.Dride.config.security;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dean.project.Dride.config.security.filters.DrideAuthenticationFilter;
 import dean.project.Dride.config.security.filters.DrideAuthorizationFilter;
 import dean.project.Dride.config.security.util.JwtUtil;
+import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +19,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import static dean.project.Dride.utilities.AdminUrls.ADMIN_BASE_URL;
 import static dean.project.Dride.utilities.Constants.LOGIN_URL;
@@ -32,29 +35,39 @@ public class SecurityConfig {
     private final AuthenticationManager authenticationManager;
     private final AuthenticationEntryPoint authenticationEntryPoint;
     private final UserDetailsService userDetailsService;
+    private final ObjectMapper objectMapper;
+    private final GlobalApiResponse.GlobalApiResponseBuilder globalApiResponse;
     private final JwtUtil jwtUtil;
     private final String[] AUTHENTICATION_WHITE_LIST = {DRIVER_REGISTER, PASSENGER_REGISTER,
             ADMIN_BASE_URL, LOGIN_URL, VERIFY_USER, ADMIN_DETAILS};
-    private final String[] SWAGGERS={SWAGGER_HTML, SWAGGER_UI, SWAGGER_API_DOCS, SWAGGER_API_DOCS2};
+    private final String[] SWAGGERS = {SWAGGER_HTML, SWAGGER_UI, SWAGGER_API_DOCS, SWAGGER_API_DOCS2};
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        //Login end point
         UsernamePasswordAuthenticationFilter authenticationFilter =
-                new DrideAuthenticationFilter(authenticationManager, jwtUtil, userDetailsService);
+                new DrideAuthenticationFilter(authenticationManager, jwtUtil, objectMapper);
         authenticationFilter.setFilterProcessesUrl(LOGIN_URL);
+
         return http.csrf().disable().cors()
                 .and()
                 .exceptionHandling()
                 .authenticationEntryPoint(authenticationEntryPoint)
                 .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .sessionManagement().sessionCreationPolicy(
+                        SessionCreationPolicy.STATELESS)
                 .and()
                 .addFilterAt(authenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(new DrideAuthorizationFilter(jwtUtil), DrideAuthenticationFilter.class)
+                .addFilterBefore(new DrideAuthorizationFilter(
+                                userDetailsService, globalApiResponse, jwtUtil, objectMapper),
+                        DrideAuthenticationFilter.class
+                )
                 .authorizeHttpRequests()
                 .requestMatchers(HttpMethod.POST, AUTHENTICATION_WHITE_LIST).permitAll()
                 .requestMatchers(SWAGGERS).permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .build();
+
     }
 }

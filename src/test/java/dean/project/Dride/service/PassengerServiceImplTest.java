@@ -1,9 +1,6 @@
 package dean.project.Dride.service;
 
-import dean.project.Dride.data.dto.request.BookRideRequest;
-import dean.project.Dride.data.dto.request.CreateUser;
-import dean.project.Dride.data.dto.request.Location;
-import dean.project.Dride.data.dto.request.RegisterPassengerRequest;
+import dean.project.Dride.data.dto.request.*;
 import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
 import dean.project.Dride.exceptions.DrideException;
 import dean.project.Dride.services.passenger_service.PassengerService;
@@ -38,10 +35,10 @@ class PassengerServiceImplTest {
 
     @Test
     void registerTest() {
-        RegisterPassengerRequest req = new RegisterPassengerRequest();
-        req.setEmail("man@email.com");
-        req.setPassword("testPassword");
-        req.setName("Amira Tinubu");
+        RegisterRequest req = new RegisterRequest();
+        req.getCreateUser().setEmail("man@email.com");
+        req.getCreateUser().setPassword("testPassword");
+        req.getCreateUser().setName("Amira Tinubu");
         GlobalApiResponse registerResponse = passengerService.register(req);
         assertThat(registerResponse).isNotNull();
     }
@@ -92,24 +89,24 @@ class PassengerServiceImplTest {
 
     @Test
     public void deletePassengerTest() {
-        RegisterPassengerRequest req = new RegisterPassengerRequest();
-        req.setEmail("deanMan@email.com");
-        req.setPassword("testPassword");
-        req.setName("Amira Kay");
+        RegisterRequest req = new RegisterRequest();
+        req.getCreateUser().setEmail("deanMan@email.com");
+        req.getCreateUser().setPassword("testPassword");
+        req.getCreateUser().setName("Amira Kay");
         GlobalApiResponse registerResponse = passengerService.register(req);
         assertThat(registerResponse).isNotNull();
 
-        passengerService.deletePassenger(registerResponse.getId());
-        assertThrows(DrideException.class, () -> passengerService.getPassengerById(registerResponse.getId()));
+        passengerService.deletePassenger();
+        assertThrows(DrideException.class, () -> passengerService.getPassenger());
 
     }
 
     @Test
     public void bookRide() {
-        RegisterPassengerRequest req = new RegisterPassengerRequest();
-        req.setEmail("mari@email.com");
-        req.setPassword("testPassword");
-        req.setName("Amira Kay");
+        RegisterRequest req = new RegisterRequest();
+        req.getCreateUser().setEmail("mari@email.com");
+        req.getCreateUser().setPassword("testPassword");
+        req.getCreateUser().setName("Amira Kay");
         GlobalApiResponse registerResponse = passengerService.register(req);
         assertThat(registerResponse).isNotNull();
 
@@ -121,7 +118,6 @@ class PassengerServiceImplTest {
 
     private BookRideRequest buildBookRideRequest(Long passengerId) {
         BookRideRequest bookRideRequest = new BookRideRequest();
-        bookRideRequest.setPassengerId(passengerId);
         bookRideRequest.setOrigin(new Location("312", "Herbert Macaulay Way", "Yaba", "Lagos"));
         bookRideRequest.setDestination(new Location("371", "Herbert Macaulay Way", "Yaba", "Lagos"));
         return bookRideRequest;

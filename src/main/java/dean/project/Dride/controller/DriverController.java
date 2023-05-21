@@ -27,9 +27,9 @@ public class DriverController {
 
     @PostMapping(value = REGISTER, consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<GlobalApiResponse> register(
-            @Valid @ModelAttribute RegisterDriverRequest registerDriverRequest) {
+            @Valid @ModelAttribute RegisterRequest registerRequest) {
         try {
-            GlobalApiResponse response = driverService.register(registerDriverRequest);
+            GlobalApiResponse response = driverService.register(registerRequest);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (DrideException exception) {
             return ResponseEntity.badRequest()
@@ -63,10 +63,8 @@ public class DriverController {
 
     @PatchMapping(UPDATE_DRIVER)
     //@Secured(value ={"ADMIN", "DRIVER"})
-    public ResponseEntity<DriverDTO> updateDriver(
-            @PathVariable Long driverId,
-            @RequestBody JsonPatch jsonPatch) {
-        DriverDTO driver = driverService.updateDriver(driverId, jsonPatch);
+    public ResponseEntity<DriverDTO> updateDriver(@RequestBody JsonPatch jsonPatch) {
+        DriverDTO driver = driverService.updateDriver(jsonPatch);
         return ResponseEntity.ok(driver);
     }
 
@@ -88,6 +86,11 @@ public class DriverController {
     //@Secured(value = "DRIVER")
     public ResponseEntity<GlobalApiResponse> endRide(@RequestBody EndRideRequest request) {
         GlobalApiResponse response = driverService.endRide(request);
+        return ResponseEntity.ok(response);
+    }
+    @PostMapping(RATE)
+    public ResponseEntity<GlobalApiResponse> ratePassenger(@RequestBody RateRequest request) {
+        GlobalApiResponse response = driverService.ratePassenger(request);
         return ResponseEntity.ok(response);
     }
 }

@@ -10,6 +10,5 @@ import lombok.*;
 @Builder
 public class EndRideRequest {
     private Long passengerId;
-    private Long driverId;
     private Rating rating;
 }

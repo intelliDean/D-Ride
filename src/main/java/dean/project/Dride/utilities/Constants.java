@@ -12,7 +12,7 @@ public class Constants {
     public static final String RIDE_NOT_FOUND = "Ride not found";
     public static final String RATING = "Thank you for your feedback! You have rated %s : %s";
     public static final String REG_SUCCESS = "Registration Successful";
-    public static final String ADMIN_IV = "Invitation mail sent to Admin : %d";
+    public static final String ADMIN_IV = "Invitation mail sent to %s";
     public static final String RIDE_STARTED = "Ride started successfully";
     public static final String RIDE_ENDED = "Ride ended";
     public static final String JSON_CONSTANT = "json";
@@ -27,7 +27,8 @@ public class Constants {
     public static final String TOKEN = "&token=";
     public static final String AUTHENTICATION_FAILED = "Authentication not successful";
     public static final String CLOUD_NAME = "cloud_name";
-    public static final String API_KEY = "api_key";
+    public static final String CLOUD_API_KEY = "api_key";
+    public static final String MAIL_API_KEY = "api-key";
     public static final String API_SECRET = "api_secret";
     public static final String SECURE="secure";
     public static final String DRIDE_EMAIL = "noreply@dride.org";
@@ -41,8 +42,8 @@ public class Constants {
     public static final Long VALUE1 = 3500L;
     public static final Long VALUE2 = 616L;
     public static final String USER_VERIFICATION_BASE_URL = "localhost:9090/api/v1/user/account/verify";
-    public static final String DRIVER_WELCOME_MAIL_FILEPATH = "C:\\Users\\Dean\\IdeaProjects\\Dride\\Dride\\src\\main\\resources\\templates\\driver_welcome.txt";
-    public static final String PASSENGER_WELCOME_MAIL_FILEPATH = "C:\\Users\\Dean\\IdeaProjects\\Dride\\Dride\\src\\main\\resources\\templates\\passenger_welcome.txt";
-    public static final String ADMIN_INVITE_MAIL_FILEPATH = "C:\\Users\\Dean\\IdeaProjects\\Dride\\Dride\\src\\main\\resources\\templates\\adminMail.txt";
-    public static final String UBER_DELUXE_TEST_IMAGE = "C:\\Users\\Dean\\IdeaProjects\\Dride\\Dride\\src\\main\\resources\\static\\repeatability-scalability-v5-1332458578.jpeg";
+    public static final String DRIVER_WELCOME_MAIL_FILEPATH = "C:\\Users\\Dean\\java projects\\Dride\\Dride\\src\\main\\resources\\adminMail.txt";
+    public static final String PASSENGER_WELCOME_MAIL_FILEPATH = "C:\\Users\\Dean\\java projects\\Dride\\Dride\\src\\main\\resources\\passenger_welcome.txt";
+    public static final String ADMIN_INVITE_MAIL_FILEPATH = "C:\\Users\\Dean\\java projects\\Dride\\Dride\\src\\main\\resources\\adminMail.txt";
+    public static final String UBER_DELUXE_TEST_IMAGE = "C:\\Users\\Dean\\java projects\\Dride\\Dride\\src\\main\\resources\\repeatability-scalability-v5-1332458578.jpeg";
 }

@@ -5,10 +5,11 @@ public class DriverUrls {
     public static final String REGISTER = "/register";
     public static final String DRIVER_ID = "{driverId}";
     public static final String ALL_DRIVERS = "/all/{pageNumber}";
-    public static final String UPDATE_DRIVER = "/update/{driverId}";
+    public static final String UPDATE_DRIVER = "/update";
     public static final String ACCEPT_RIDE = "/accept";
     public static final String START_RIDE = "/start";
     public static final String END_RIDE = "/end";
+    public static final String RATE = "/rate";
     public static final String COMPLETE_REG = "complete/{driverId}";
     public static final String CANNOT_BE_NULL = "Field name cannot be null";
     public static final String CANNOT_BE_EMPTY = "Field name cannot be empty";

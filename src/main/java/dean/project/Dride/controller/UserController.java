@@ -4,6 +4,7 @@ package dean.project.Dride.controller;
 import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
 import dean.project.Dride.data.dto.response.entity_dtos.UserDTO;
 import dean.project.Dride.exceptions.DrideException;
+import dean.project.Dride.services.notification.MailService;
 import dean.project.Dride.services.user_service.UserService;
 import dean.project.Dride.utilities.Paginate;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,6 +22,7 @@ import static dean.project.Dride.utilities.UserUrls.*;
 @AllArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final MailService mailService;
     private final GlobalApiResponse.GlobalApiResponseBuilder globalResponse;
 
     @PostMapping(value = UPLOAD_IMAGE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -91,12 +93,5 @@ public class UserController {
             @RequestParam int pageNumber) {
         Paginate<UserDTO> users = userService.getAllUsers(pageNumber);
         return ResponseEntity.ok(users);
-    }
-
-    @GetMapping(CURRENT_USER)
-    //@Secured(value ={"ADMINISTRATOR", "PASSENGER", "DRIVER"})
-    public ResponseEntity<?> getCurrentUser() {
-        var user = userService.CurrentAppUser();
-        return ResponseEntity.ok(user);
     }
 }

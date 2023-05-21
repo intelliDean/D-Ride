@@ -12,7 +12,6 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RideRequest {
-    private Long passengerId;  // I won't use this anymore when i implement the currentUser();
     private Location origin;
     private Location destination;
     private BigDecimal fare;

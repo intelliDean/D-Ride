@@ -12,15 +12,14 @@ import dean.project.Dride.data.repositories.DriverRepository;
 import dean.project.Dride.exceptions.DrideException;
 import dean.project.Dride.exceptions.ImageUploadException;
 import dean.project.Dride.exceptions.UserNotFoundException;
+import dean.project.Dride.services.user_service.CurrentUserService;
 import dean.project.Dride.services.cloud.CloudService;
 import dean.project.Dride.services.notification.MailService;
 import dean.project.Dride.services.ride_services.RideService;
-import dean.project.Dride.services.user_service.UserService;
 import dean.project.Dride.utilities.DrideUtilities;
 import dean.project.Dride.utilities.Paginate;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
@@ -31,7 +30,6 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.Optional;
 
 import static dean.project.Dride.data.models.Role.DRIVER;
@@ -44,7 +42,7 @@ import static dean.project.Dride.utilities.DriverUrls.COMPLETED;
 @AllArgsConstructor
 @Slf4j
 public class DriverServiceImpl implements DriverService {
-
+    private final CurrentUserService currentUserService;
     private final DriverRepository driverRepository;
     private final CloudService cloudService;
     private final ModelMapper modelMapper;
@@ -54,8 +52,10 @@ public class DriverServiceImpl implements DriverService {
     private final GlobalApiResponse.GlobalApiResponseBuilder globalResponse;
 
     @Override
-    public GlobalApiResponse register(RegisterDriverRequest request) {
-        User user = createUser(request);
+    public GlobalApiResponse register(RegisterRequest request) {
+        User user = DrideUtilities.createUser(request.getCreateUser());
+        user.getRoles().add(DRIVER);
+
         var imageUrl = cloudService.upload(request.getLicenseImage());
         if (imageUrl == null) throw new ImageUploadException(DRIVER_REG_FAILED);
 
@@ -84,7 +84,9 @@ public class DriverServiceImpl implements DriverService {
             RefereeRequest refereeRequest) {
         Driver driver = getDriver(driverId);
         Driver updatedDriver = completeDriver(driver, driverRequest);
+
         Referee referee = createReferee(refereeRequest);
+
         updatedDriver.setReferee(referee);
         return globalResponse.message(COMPLETED).build();
     }
@@ -101,25 +103,13 @@ public class DriverServiceImpl implements DriverService {
     private Driver completeDriver(Driver driver, CompleteDriverRequest driverRequest) {
         Address address = modelMapper.map(driverRequest, Address.class);
         BankInformation bankInformation = modelMapper.map(driverRequest, BankInformation.class);
-
-        driver.setBankInformation(bankInformation);
         driver.setAddress(address);
+        driver.setBankInformation(bankInformation);
+        driver.setGender(driverRequest.getGender());
         driver.setPhoneNumber(driverRequest.getPhoneNumber());
-        driver.setGender(driver.getGender());
         return driver;
     }
 
-    @NotNull
-    private User createUser(RegisterDriverRequest request) {
-        User user = new User();
-        user.setName(request.getName());
-        user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setCreatedAt(LocalDateTime.now().toString());
-        user.setRoles(new HashSet<>());
-        user.getRoles().add(DRIVER);
-        return user;
-    }
 
     private EmailNotificationRequest emailRequest(String email, String name, Long userId) {
         EmailNotificationRequest request = new EmailNotificationRequest();
@@ -129,6 +119,11 @@ public class DriverServiceImpl implements DriverService {
         String content = String.format(template, name, DrideUtilities.generateVerificationLink(userId));
         request.setHtmlContent(content);
         return request;
+    }
+
+    private Driver currentDriver() {
+        return getDriverByUserId(currentUserService.currentUser().getId())
+                .orElseThrow(UserNotFoundException::new);
     }
 
     @Override
@@ -157,11 +152,9 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public DriverDTO updateDriver(Long driverId, JsonPatch jsonPatch) {
+    public DriverDTO updateDriver(JsonPatch jsonPatch) {
+        Driver driver = currentDriver();
         ObjectMapper objectMapper = new ObjectMapper();
-        Driver driver = driverRepository.findById(driverId)
-                .orElseThrow(UserNotFoundException::new);
-
         JsonNode jsonNode = objectMapper.convertValue(driver, JsonNode.class);
         try {
             JsonNode updatedNode = jsonPatch.apply(jsonNode);
@@ -181,6 +174,19 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
+    public GlobalApiResponse ratePassenger(RateRequest rateRequest) {
+        Ride ride = rideService.getRideByPassengerIdAndDriverIdRideStatus(
+                rateRequest.getRateeId(), currentDriver().getId(), Status.END_RIDE);
+        ride.setPassengerRating(rateRequest.getRating());
+        rideService.save(ride);
+        String passengerName = ride.getPassenger().getUser().getName();
+        String rating = rateRequest.getRating().toString();
+        return globalResponse
+                .message(String.format(RATING, passengerName, rating))
+                .build();
+    }
+
+    @Override
     public void saveDriver(Driver driver) {
         driverRepository.save(driver);
     }
@@ -197,9 +203,7 @@ public class DriverServiceImpl implements DriverService {
         Ride ride = rideService.getRideByPassengerIdAndRideStatus(
                 request.getPassengerId(),
                 Status.BOOKED);
-
-        Driver driver = getDriverBy(request.getDriverId())
-                .orElseThrow(UserNotFoundException::new);
+        Driver driver = currentDriver();
 
         ride.setDriver(driver);
         ride.setRideStatus(Status.ACCEPTED);
@@ -216,7 +220,7 @@ public class DriverServiceImpl implements DriverService {
     @Override
     public GlobalApiResponse startRide(StartRideRequest request) {
         Ride ride = rideService.getRideByPassengerIdAndDriverIdRideStatus(
-                request.getPassengerId(), request.getDriverId(), Status.ACCEPTED);
+                request.getPassengerId(), currentDriver().getId(), Status.ACCEPTED);
 
         ride.setRideStatus(Status.START_RIDE);
         ride.setStartTime(LocalDateTime.now().toString());
@@ -230,7 +234,7 @@ public class DriverServiceImpl implements DriverService {
     @Override
     public GlobalApiResponse endRide(EndRideRequest request) {
         Ride ride = rideService.getRideByPassengerIdAndDriverIdRideStatus(
-                request.getPassengerId(), request.getDriverId(), Status.START_RIDE);
+                request.getPassengerId(), currentDriver().getId(), Status.START_RIDE);
 
         ride.setRideStatus(Status.END_RIDE);
         ride.setEndTime(LocalDateTime.now().toString());

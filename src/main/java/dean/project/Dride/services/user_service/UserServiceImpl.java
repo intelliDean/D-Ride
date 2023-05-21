@@ -1,7 +1,9 @@
 package dean.project.Dride.services.user_service;
 
+import dean.project.Dride.config.security.filters.DrideAuthenticationFilter;
 import dean.project.Dride.config.security.users.AuthenticatedUser;
 import dean.project.Dride.data.dto.request.CreateUser;
+import dean.project.Dride.data.dto.request.LoginRequest;
 import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
 import dean.project.Dride.data.dto.response.entity_dtos.UserDTO;
 import dean.project.Dride.data.models.Admin;
@@ -25,15 +27,16 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 
-import static dean.project.Dride.data.models.Role.PASSENGER;
 import static dean.project.Dride.utilities.Constants.*;
 
 
@@ -60,6 +63,7 @@ public class UserServiceImpl implements UserService {
                 .message(SUCCESS)
                 .build();
     }
+
     public User createUser(CreateUser create) {
         User user = new User();
         user.setName(create.getName());
@@ -142,6 +146,7 @@ public class UserServiceImpl implements UserService {
     public UserDTO getByUserId(Long userId) {
         return modelMapper.map(userById(userId), UserDTO.class);
     }
+
     private User userById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
@@ -155,19 +160,5 @@ public class UserServiceImpl implements UserService {
         Type paginatedUsers = new TypeToken<Paginate<UserDTO>>() {
         }.getType();
         return modelMapper.map(users, paginatedUsers);
-    }
-
-    @Override
-    public String CurrentAppUser() {
-        try {
-            AuthenticatedUser user = (AuthenticatedUser) SecurityContextHolder
-                    .getContext()
-                    .getAuthentication()
-                    .getPrincipal();
-
-            return user + " nothing is here";
-        } catch (Exception e) {
-            throw new UserNotFoundException(e.getMessage());
-        }
     }
 }

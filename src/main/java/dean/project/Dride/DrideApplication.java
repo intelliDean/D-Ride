@@ -6,6 +6,9 @@ import io.swagger.v3.oas.annotations.info.Info;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import static dean.project.Dride.utilities.Constants.DRIDE_EMAIL;
+
 @Slf4j
 @SpringBootApplication
 @OpenAPIDefinition(
@@ -15,7 +18,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
                 description = "This app provides REST APIs documentation for DrideApp",
                 contact = @Contact(
                         name = "Dride Support",
-                        email = "noreply@dride.org"
+                        email = DRIDE_EMAIL
                 )
         )
 )

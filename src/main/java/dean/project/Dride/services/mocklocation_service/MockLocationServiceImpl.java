@@ -22,8 +22,8 @@ public class MockLocationServiceImpl implements MockLocationService {
                 List.of(origin.toString()),
                 List.of(new DistanceMatrixRow(
                                 List.of(new DistanceMatrixElement(DistanceMatrixElementStatus.OK,
-                                                new GoogleDistance(KM, VALUE1),
-                                                new GoogleDuration(MINS, VALUE2),
+                                                new GoogleDistance("10 km", 3500L),
+                                                new GoogleDuration("10 mins", 616L),
                                                 new Fare()
                                         )
                                 )

@@ -13,19 +13,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static dean.project.Dride.utilities.DriverUrls.*;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 
 @RestController
-@RequestMapping(DRIVER_BASE_URL)
+@RequestMapping("/api/v1/driver")
 @AllArgsConstructor
 public class DriverController {
 
     private final DriverService driverService;
     private final GlobalApiResponse.GlobalApiResponseBuilder globalResponse;
 
-    @PostMapping(value = REGISTER, consumes = MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/register", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<GlobalApiResponse> register(
             @Valid @ModelAttribute RegisterRequest registerRequest) {
         try {
@@ -38,7 +37,7 @@ public class DriverController {
                             .build());
         }
     }
-    @PostMapping(COMPLETE_REG)
+    @PostMapping("complete/{driverId}")
     public ResponseEntity<GlobalApiResponse> completeRegistration(
             @PathVariable Long driverId,
             @RequestBody CompleteDriverRequest driverRequest,
@@ -47,48 +46,48 @@ public class DriverController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping(DRIVER_ID)
+    @GetMapping("{driverId}")
     //@Secured(value ={"ADMIN", "DRIVER"})
     public ResponseEntity<DriverDTO> getDriver(@PathVariable Long driverId) {
         DriverDTO driver = driverService.getDriverById(driverId);
         return ResponseEntity.ok(driver);
     }
 
-    @GetMapping(ALL_DRIVERS)
+    @GetMapping("/all/{pageNumber}")
     //@Secured(value ="ADMIN")
     public ResponseEntity<Paginate<DriverDTO>> getAllDrivers(@PathVariable int pageNumber) {
         Paginate<DriverDTO> driver = driverService.getAllDrivers(pageNumber);
         return ResponseEntity.ok(driver);
     }
 
-    @PatchMapping(UPDATE_DRIVER)
+    @PatchMapping("/update")
     //@Secured(value ={"ADMIN", "DRIVER"})
     public ResponseEntity<DriverDTO> updateDriver(@RequestBody JsonPatch jsonPatch) {
         DriverDTO driver = driverService.updateDriver(jsonPatch);
         return ResponseEntity.ok(driver);
     }
 
-    @PostMapping(ACCEPT_RIDE)
+    @PostMapping("/accept")
     //@Secured(value = "DRIVER")
     public ResponseEntity<GlobalApiResponse> acceptRide(@RequestBody AcceptRideRequest request) {
         GlobalApiResponse response = driverService.acceptRide(request);
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping(START_RIDE)
+    @PostMapping("/start")
     //@Secured(value = "DRIVER")
     public ResponseEntity<GlobalApiResponse> startRide(@RequestBody StartRideRequest request) {
         GlobalApiResponse response = driverService.startRide(request);
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping(END_RIDE)
+    @PostMapping("/end")
     //@Secured(value = "DRIVER")
     public ResponseEntity<GlobalApiResponse> endRide(@RequestBody EndRideRequest request) {
         GlobalApiResponse response = driverService.endRide(request);
         return ResponseEntity.ok(response);
     }
-    @PostMapping(RATE)
+    @PostMapping("/rate")
     public ResponseEntity<GlobalApiResponse> ratePassenger(@RequestBody RateRequest request) {
         GlobalApiResponse response = driverService.ratePassenger(request);
         return ResponseEntity.ok(response);

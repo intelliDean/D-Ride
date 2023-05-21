@@ -5,7 +5,6 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import static dean.project.Dride.utilities.DriverUrls.*;
 
 
 @AllArgsConstructor
@@ -35,6 +34,6 @@ public class RegisterRequest {
     private String dateOfBirth;
     private String licenseNumber;
 
-    @NotNull(message = UPLOAD_LICENSE)
+    @NotNull(message = "Please upload license image")
     private MultipartFile licenseImage;
 }

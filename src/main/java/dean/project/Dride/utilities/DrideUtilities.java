@@ -10,6 +10,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.impl.TextCodec;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.io.BufferedReader;
@@ -29,6 +30,8 @@ import static dean.project.Dride.utilities.Constants.*;
 
 @AllArgsConstructor
 public class DrideUtilities {
+    @Value("${jwt.secret.key}")
+    private static String jwtSecret;
     private static PasswordEncoder passwordEncoder;
     public static User createUser(CreateUser createUser) {
         return User.builder()
@@ -72,15 +75,15 @@ public class DrideUtilities {
     private static String generateVerificationToken() {
         Date expiration = Date.from(Instant.now().plusSeconds(86400));
         return Jwts.builder()
-                .setIssuer(ISSUER)
-                .signWith(SignatureAlgorithm.HS256, TextCodec.BASE64.decode(JWT_SECRET))
+                .setIssuer(APP_NAME)
+                .signWith(SignatureAlgorithm.HS256, TextCodec.BASE64.decode(jwtSecret))
                 .setExpiration(expiration)
                 .setIssuedAt(Date.from(Instant.now()))
                 .compact();
     }
 
     public static int calculateAge(String dateOfBirth) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_PATTERN);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         LocalDate birthDate = LocalDate.parse(dateOfBirth, formatter);
         LocalDate currentDate = LocalDate.now();
 
@@ -91,7 +94,7 @@ public class DrideUtilities {
     public static boolean isTokenSigned(String token) {
         try {
             Jwts.parserBuilder()
-                    .setSigningKey(TextCodec.BASE64.decode(JWT_SECRET))
+                    .setSigningKey(TextCodec.BASE64.decode(jwtSecret))
                     .build()
                     .parseClaimsJws(token);
             return true; // Token is signed

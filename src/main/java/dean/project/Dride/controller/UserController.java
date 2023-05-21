@@ -15,17 +15,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import static dean.project.Dride.utilities.UserUrls.*;
 
 @RestController
-@RequestMapping(USER_BASE_URL)
+@RequestMapping("/api/v1/user")
 @AllArgsConstructor
 public class UserController {
     private final UserService userService;
     private final MailService mailService;
     private final GlobalApiResponse.GlobalApiResponseBuilder globalResponse;
 
-    @PostMapping(value = UPLOAD_IMAGE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/upload/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "To upload any user profile picture")
     public ResponseEntity<GlobalApiResponse> uploadProfileImage(
             @RequestParam MultipartFile file,  @PathVariable Long userId) {
@@ -41,7 +40,7 @@ public class UserController {
         }
     }
 
-    @PostMapping(VERIFY_ACCOUNT)
+    @PostMapping("/account/verify")
     @Operation(summary = "to verify the user before enabling their account")
     public ResponseEntity<GlobalApiResponse> verifyAccount(
             @Parameter(
@@ -65,7 +64,7 @@ public class UserController {
         }
     }
 
-    @GetMapping(USER_ID)
+    @GetMapping("{userId}")
     @Operation(summary = "To get a user by user Id")
     //@Secured(value = {"ADMINISTRATOR", "PASSENGER", "DRIVER"})
     public ResponseEntity<UserDTO> getUserById(
@@ -76,7 +75,7 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @GetMapping(GET_USER_BY_MAIL)
+    @GetMapping("mail")
     @Operation(summary = "To get a user by user email")
     public ResponseEntity<UserDTO> getUserByEmail(
             @Parameter(name = "email", description = "The email of the user to get", required = true)

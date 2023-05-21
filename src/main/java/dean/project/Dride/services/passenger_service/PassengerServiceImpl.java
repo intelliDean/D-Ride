@@ -187,7 +187,7 @@ public class PassengerServiceImpl implements PassengerService {
         var response = attemptBookRide(bookRideRequest);
         if (request.getRideStatus() == null || !request.getRideStatus().equals(Status.BOOKED)) {
             return new BookRideResponse<>(globalResponse
-                    .message(INCOMPLETE)
+                    .message("Incomplete Ride Booking")
                     .fare(response.getFare())
                     .estimatedTimeOfArrival(response.getEstimatedTimeOfArrival())
                     .build());
@@ -237,7 +237,7 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     private String buildDistanceRequestUrl(Location origin, Location destination) {
-        return directionConfig.getGoogleDistanceUrl() + "/" + JSON_CONSTANT + "?"
+        return directionConfig.getGoogleDistanceUrl() + "/" + "json" + "?"
                 + "destinations=" + DrideUtilities.buildLocation(destination) + "&origins="
                 + DrideUtilities.buildLocation(origin) + "&mode=driving" + "&traffic_model=pessimistic"
                 + "&departure_time=" + LocalDateTime.now().toEpochSecond(ZoneOffset.of("+01:00"))

@@ -23,10 +23,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static dean.project.Dride.utilities.AdminUrls.ADMIN_BASE_URL;
-import static dean.project.Dride.utilities.Constants.AUTHENTICATION_FAILED;
-import static dean.project.Dride.utilities.Constants.LOGIN_URL;
-import static dean.project.Dride.utilities.SecurityUrls.*;
+import static dean.project.Dride.utilities.Constants.*;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @Slf4j
@@ -74,9 +71,9 @@ public class DrideAuthorizationFilter extends OncePerRequestFilter {
     }
 
     private boolean grantFreeAccessTo(String servletPath) {
-        List<String> allowedPaths = Arrays.asList(
-                LOGIN_URL, DRIVER_REGISTER, PASSENGER_REGISTER,
-                ADMIN_BASE_URL, VERIFY_USER, ADMIN_DETAILS);
+        List<String> allowedPaths = List.of(LOGIN_URL, DRIVER_REGISTER, PASSENGER_REGISTER,
+                ADMIN_BASE_URL, VERIFY_USER, ADMIN_DETAILS,
+                "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**");
         return allowedPaths.contains(servletPath);
     }
 

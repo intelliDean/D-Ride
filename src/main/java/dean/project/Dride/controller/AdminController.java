@@ -14,7 +14,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static dean.project.Dride.utilities.AdminUrls.*;
+import static dean.project.Dride.utilities.Constants.ADMIN_BASE_URL;
+
 
 @AllArgsConstructor
 @RestController
@@ -31,32 +32,32 @@ public class AdminController {
         GlobalApiResponse response = adminService.sendInviteRequests(invitationRequest);
         return ResponseEntity.ok(response);
     }
-    @PatchMapping(UPDATE)
+    @PatchMapping("update")
     public ResponseEntity<GlobalApiResponse> updateAdmin (@RequestBody JsonPatch jsonPatch) {
         GlobalApiResponse response = adminService.updateAdmin(jsonPatch);
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping(ADMIN_DETAILS)
+    @PostMapping("/details")
     public ResponseEntity<AdminDTO> adminDetails(@RequestBody AdminDetailsRequest request) {
         AdminDTO admin = adminService.adminDetails(request);
         return ResponseEntity.ok(admin);
     }
 
-    @GetMapping(GET_ADMIN)
+    @GetMapping("/getAdmin")
 //    @Secured(value ="ADMINISTRATOR")
     public ResponseEntity<AdminDTO> getAdminByMail(@RequestParam String email) {
         AdminDTO admin = adminService.getAdminByEmail(email);
         return ResponseEntity.ok(admin);
     }
 
-    @GetMapping(GET)
+    @GetMapping("get")
     public ResponseEntity<AdminDTO> getAdminById() {
         AdminDTO admin = adminService.getCurrentAdmin();
         return ResponseEntity.ok(admin);
     }
 
-    @GetMapping(ALL_ADMINS)
+    @GetMapping("/all")
     //@Secured(value ="ADMINISTRATOR")
     public ResponseEntity<Paginate<AdminDTO>> getAllAdmins(@RequestParam int pageNumber) {
         Paginate<AdminDTO> admin = adminService.getAllAdmins(pageNumber);

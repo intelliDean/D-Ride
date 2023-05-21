@@ -6,14 +6,12 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.impl.TextCodec;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.time.Instant;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
-import static dean.project.Dride.utilities.Constants.ISSUER;
+import static dean.project.Dride.utilities.Constants.APP_NAME;
 
 @AllArgsConstructor
 @Getter
@@ -42,7 +40,7 @@ public class JwtUtil {
                 Instant.now()
                         .plusSeconds(3600 * 24));
         return Jwts.builder()
-                .setIssuer(ISSUER)
+                .setIssuer(APP_NAME)
                 .setSubject(email)
                 .setExpiration(refreshExpiration)
                 .signWith(SignatureAlgorithm.HS512,
@@ -53,7 +51,7 @@ public class JwtUtil {
     public String generateAccessToken(Map<String, Object> claims, String email) {
         Date accessExpiration = Date.from(Instant.now().plusSeconds(3600));
         return Jwts.builder()
-                .setIssuer(ISSUER)
+                .setIssuer(APP_NAME)
                 .setIssuedAt(new Date())
                 .setClaims(claims)
                 .setSubject(email)

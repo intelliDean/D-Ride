@@ -6,8 +6,6 @@ import org.springframework.http.HttpStatus;
 
 import java.io.Serial;
 
-import static dean.project.Dride.utilities.Constants.ERROR_OCCUR;
-
 public class DrideException extends RuntimeException {
     @Serial
     private static final long serialVersionUID = 1;
@@ -17,7 +15,7 @@ public class DrideException extends RuntimeException {
     private HttpStatus status;
 
     public DrideException() {
-        this(ERROR_OCCUR);
+        this("An error occurred!");
     }
 
     public DrideException(String message, HttpStatus status) {

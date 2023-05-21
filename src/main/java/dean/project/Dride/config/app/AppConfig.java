@@ -49,9 +49,9 @@ public class AppConfig {
     public Cloudinary cloudinary() {
         return new Cloudinary(
                 ObjectUtils.asMap(
-                        CLOUD_NAME, cloudName,
-                        CLOUD_API_KEY, cloudApiKey,
-                        API_SECRET, apiSecret));
+                        "cloud_name", cloudName,
+                        "api_key", cloudApiKey,
+                        "api_secret", apiSecret));
     }
 
     @Bean
@@ -70,7 +70,7 @@ public class AppConfig {
         return WebClient
                 .builder()
                 .baseUrl(mailUrl)
-                .defaultHeader(MAIL_API_KEY, mailApiKey)
+                .defaultHeader("api-key", mailApiKey)
                 .build();
     }
 

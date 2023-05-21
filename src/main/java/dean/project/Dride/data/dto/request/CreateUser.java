@@ -7,9 +7,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
-import static dean.project.Dride.utilities.DriverUrls.*;
-import static dean.project.Dride.utilities.PassengerUrls.FULL_NAME;
-import static dean.project.Dride.utilities.PassengerUrls.PASSWORD;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -17,19 +14,19 @@ import static dean.project.Dride.utilities.PassengerUrls.PASSWORD;
 @Setter
 @Builder
 public class CreateUser {
-    @NotNull(message = CANNOT_BE_NULL)
-    @NotEmpty(message = CANNOT_BE_EMPTY)
-    @JsonProperty(FULL_NAME)
+    @NotNull(message = "Name cannot be null")
+    @NotEmpty(message = "Name cannot be empty")
+    @JsonProperty("full_name")
     private String name;
 
-    @NotNull(message = CANNOT_BE_NULL)
-    @NotEmpty(message = CANNOT_BE_EMPTY)
-    @Email(message = MUST_BE_VALID_EMAIL)
+    @NotNull(message = "Email cannot be null")
+    @NotEmpty(message = "Email cannot be empty")
+    @Email(message = "Must be a valid email address")
     private String email;
 
-    @NotNull(message = CANNOT_BE_NULL)
-    @NotEmpty(message = CANNOT_BE_EMPTY)
-    @Size(min = MIN, max = MAX)
-    @JsonProperty(PASSWORD)
+    @NotNull(message = "Password cannot be null")
+    @NotEmpty(message = "Password cannot be empty")
+    @Size(min = 8, max = 20)
+    @JsonProperty("password")
     private String password;
 }

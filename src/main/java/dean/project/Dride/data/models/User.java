@@ -3,11 +3,9 @@ package dean.project.Dride.data.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Formula;
 
 import java.util.Set;
 
-import static dean.project.Dride.utilities.UserUrls.USERS;
 
 @Entity
 @AllArgsConstructor
@@ -15,7 +13,7 @@ import static dean.project.Dride.utilities.UserUrls.USERS;
 @Getter
 @Setter
 @Builder
-@Table(name = USERS)
+@Table(name = "users")
 public class User {
     @JsonIgnore
     @Id

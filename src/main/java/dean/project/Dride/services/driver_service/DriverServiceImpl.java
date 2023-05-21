@@ -35,7 +35,6 @@ import java.util.Optional;
 import static dean.project.Dride.data.models.Role.DRIVER;
 import static dean.project.Dride.exceptions.ExceptionMessage.*;
 import static dean.project.Dride.utilities.Constants.*;
-import static dean.project.Dride.utilities.DriverUrls.COMPLETED;
 
 
 @Service
@@ -88,7 +87,7 @@ public class DriverServiceImpl implements DriverService {
         Referee referee = createReferee(refereeRequest);
 
         updatedDriver.setReferee(referee);
-        return globalResponse.message(COMPLETED).build();
+        return globalResponse.message("Driver information updated successfully").build();
     }
 
     private Referee createReferee(RefereeRequest refereeRequest) {
@@ -227,7 +226,7 @@ public class DriverServiceImpl implements DriverService {
         rideService.save(ride);
 
         return globalResponse
-                .message(RIDE_STARTED)
+                .message("Ride started successfully")
                 .build();
     }
 
@@ -243,7 +242,7 @@ public class DriverServiceImpl implements DriverService {
 
         rideService.save(ride);
         return globalResponse
-                .message(RIDE_ENDED)
+                .message("Ride ended")
                 .fare(ride.getFare())   //todo: I should call google Api to calculate the eventual fare
                 .build();
     }

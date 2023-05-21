@@ -56,7 +56,7 @@ public class UserServiceImpl implements UserService {
     public GlobalApiResponse uploadProfileImage(MultipartFile profileImage, Long userId) {
         User user = userById(userId);
         String imageUrl = cloudService.upload(profileImage);
-        if (imageUrl.isEmpty()) throw new DrideException(UPLOAD_FAILED);
+        if (imageUrl.isEmpty()) throw new DrideException("Image upload failed");
         user.setProfileImage(imageUrl);
         userRepository.save(user);
         return globalResponse
@@ -76,7 +76,7 @@ public class UserServiceImpl implements UserService {
 
     private UserRecord getUserRecord(Long appUserId) {
         if (!userRepository.existsById(appUserId))
-            throw new UserNotFoundException(USER_NOT_EXIST);
+            throw new UserNotFoundException("User does not exist");
 
         Optional<Driver> driver = Optional.empty();
         Optional<Admin> admin = Optional.empty();
@@ -102,7 +102,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public GlobalApiResponse verifyAccount(Long userId, String token) {
         if (DrideUtilities.isTokenSigned(token)) return getVerifiedResponse(userId);
-        throw new DrideException(String.format(VERIFY_FAILED, userId));
+        throw new DrideException(String.format("Account verification for user with %d failed", userId));
     }
 
     private GlobalApiResponse getVerifiedResponse(Long userId) {

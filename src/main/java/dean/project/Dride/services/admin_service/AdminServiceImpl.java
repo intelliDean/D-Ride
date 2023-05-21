@@ -58,7 +58,7 @@ public class AdminServiceImpl implements AdminService {
         Admin admin = createAdminProfile(invitation);
         Recipient recipient = createRecipient(admin);
 
-        request.setSubject(ADMIN_SUBJECT);
+        request.setSubject("Admin Invitation");
         request.getTo().add(recipient);
         Long userId = admin.getUser().getId();
         String adminName = admin.getUser().getName();
@@ -71,7 +71,7 @@ public class AdminServiceImpl implements AdminService {
         if (response == null) throw new DrideException(EMAIL_EXCEPTION);
 
         return globalResponse
-                .message(String.format(ADMIN_IV, admin.getUser().getName()))
+                .message(String.format("Invitation mail sent to %s", admin.getUser().getName()))
                 .build();
     }
     private Admin currentAdmin() {
@@ -96,13 +96,13 @@ public class AdminServiceImpl implements AdminService {
 
     private String generateEmployeeId(Admin admin) {
         StringBuilder builder = new StringBuilder();
-        String[] splitNames = admin.getUser().getName().split(REGX);
+        String[] splitNames = admin.getUser().getName().split(" ");
         Arrays.stream(splitNames).forEach(eachName -> builder.append(eachName.charAt(0)));
 
         String toUppercase = builder.toString().toUpperCase();
         String adminId = String.valueOf(admin.getId());
         String userId = String.valueOf(admin.getUser().getId());
-        return String.format(EMP_ID, toUppercase, adminId, userId);
+        return String.format("%s-0%s-0%s", toUppercase, adminId, userId);
     }
 
     @Override

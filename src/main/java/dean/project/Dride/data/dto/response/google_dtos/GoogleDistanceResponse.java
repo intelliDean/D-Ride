@@ -6,9 +6,6 @@ import lombok.*;
 
 import java.util.List;
 
-import static dean.project.Dride.utilities.Constants.DESTINATION_ADDRESSES;
-import static dean.project.Dride.utilities.Constants.ORIGIN_ADDRESSES;
-
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -16,10 +13,10 @@ import static dean.project.Dride.utilities.Constants.ORIGIN_ADDRESSES;
 @ToString
 public class GoogleDistanceResponse {
 
-    @JsonProperty(DESTINATION_ADDRESSES)
+    @JsonProperty("destination_addresses")
     private List<String> destinationAddresses;
 
-    @JsonProperty(ORIGIN_ADDRESSES)
+    @JsonProperty("origin_addresses")
     private List<String> originAddresses;
 
     private List<DistanceMatrixRow> rows;

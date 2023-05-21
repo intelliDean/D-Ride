@@ -102,20 +102,4 @@ public class DrideAuthenticationFilter extends UsernamePasswordAuthenticationFil
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         mapper.writeValue(response.getOutputStream(), tokens);
     }
-
-//    @Override
-//    protected void unsuccessfulAuthentication(
-//            HttpServletRequest request,
-//            HttpServletResponse response,
-//            AuthenticationException failed) throws IOException, ServletException {
-//        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-//        mapper.writeValue(response.getOutputStream(), "The authentication attempt failed");
-//        super.unsuccessfulAuthentication(request, response, failed);
-//    }
-//
-//    @Override
-//    public void setFilterProcessesUrl(String filterProcessesUrl) {
-//        super.setFilterProcessesUrl("api/v1/auth/login");
-//    }
-
 }

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<body>
+
+<h4>Dear <span th:text="${name}"></span>,</h4>
+<p>
+    We extend a warm welcome to you as a valued member of our team at Dride.<br/>
+    We are thrilled to have you on board as our driver, and we believe that<br/>
+    your expertise and skills will greatly contribute to our company's growth.<br/><br/>
+</p>
+<p>
+    This is an exciting time for us as we continue to expand and make strides<br/>
+    in our industry, and we are honored to have you join us on this journey.<br/>
+    We are eager to collaborate with you and leverage your talents to drive<br/>
+    Dride's success to new heights.<br/><br/>
+</p>
+<p>
+    To get started, kindly on click
+    <a th:href="@{{url}(url=${verifyUrl})} " target="_blank"
+       style="text-decoration: none;">
+        <button style="display: inline-block;
+        padding: 8px 15px;
+        background-color: #3cd718;
+        color: white;
+        border-width: 3px;
+        border-color: #0ca2bc;
+        border-style: solid;
+        border-radius: 7px;
+        cursor: pointer;">
+            Activate
+        </button>
+    </a> button to enable your account<br/> and gain access to our systems. We are confident that your
+    addition to our<br/> team will make a positive impact, and we eagerly anticipate working
+    together<br/> towards our shared goals.<br/><br/>
+</p>
+<p>
+    Once again, welcome to Dride, and we are excited to have you on our team!<br/><br/>
+
+    Best regards,<br/>
+    Deborah Sultan<br/>
+    HR & Talent Manager<br/>
+</p>
+</body>
+</html>

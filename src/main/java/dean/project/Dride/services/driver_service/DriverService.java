@@ -17,14 +17,9 @@ public interface DriverService {
             CompleteDriverRequest driverRequest,
             RefereeRequest refereeRequest);
 
-    Optional<Driver> getDriverBy(Long driverId);
 
-    DriverDTO getDriverById(Long driverId);
-
+    DriverDTO getCurrentDriver();
     void saveDriver(Driver driver);
-
-    DriverDTO getDriverByEMail(String email);
-
     GlobalApiResponse acceptRide(AcceptRideRequest request);
 
     GlobalApiResponse startRide(StartRideRequest request);

@@ -8,23 +8,22 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static dean.project.Dride.utilities.RideUrls.*;
 
 
 @RestController
 @AllArgsConstructor
-@RequestMapping(RIDE_BASE_URL)
+@RequestMapping("/api/v1/ride")
 public class RideController {
     private final RideService rideService;
 
-    @GetMapping(ALL_RIDES)
+    @GetMapping("/all")
     //@Secured(value ="ADMINISTRATOR")
     public ResponseEntity<Paginate<RideDTO>> getAllRides(@RequestParam int pageNumber) {
         Paginate<RideDTO> rides = rideService.getAllRides(pageNumber);
         return ResponseEntity.ok(rides);
     }
 
-    @GetMapping(DRIVER_AND_ID)
+    @GetMapping("/driver/{driverId}")
     //@Secured(value ={"ADMINISTRATOR", "DRIVER"})
     public ResponseEntity<Paginate<RideDTO>> getAllRidesByDriver(
             @PathVariable Long driverId, @RequestParam int pageNumber) {
@@ -32,7 +31,7 @@ public class RideController {
         return ResponseEntity.ok(rides);
     }
 
-    @GetMapping(PASSENGER_AND_ID)
+    @GetMapping("/passenger/{passengerId}")
     //@Secured(value ={"ADMINISTRATOR", "PASSENGER"})
     public ResponseEntity<Paginate<RideDTO>> getAllRidesByPassenger(
             @PathVariable Long passengerId, @RequestParam int pageNumber) {
@@ -40,7 +39,7 @@ public class RideController {
         return ResponseEntity.ok(rides);
     }
 
-    @GetMapping(PASSENGER_AND_DRIVER)
+    @GetMapping("/passenger_and_driver")
     //@Secured(value ={"ADMINISTRATOR", "PASSENGER", "DRIVER"})
     public ResponseEntity<Paginate<RideDTO>> getAllRidesByPassengerAndDriver(
             @RequestBody AllRideRequest request) {

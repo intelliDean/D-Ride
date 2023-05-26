@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <h4>Dear <span th:text="${email}"></span>,</h4><br/><br/>
+    <p>You requested a new password. Click the button below to create a new password.</p>
+    <a href="${linkedToken}" style="text-decoration: none;">
+        <button style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer;">
+            Create New Password
+        </button>
+    </a>
+    <p>If you have not requested a new password, please ignore this message.</p>
+
+    <p>
+        Best regards,<br/>
+        <strong>Nneka Njoku</strong><br/>
+        Experience Manager
+    </p>
+</body>
+</html>

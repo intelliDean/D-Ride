@@ -10,7 +10,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Map;
 
-import static dean.project.Dride.utilities.Constants.URL;
 
 @Service
 @AllArgsConstructor
@@ -23,7 +22,7 @@ public class CloudinaryCloudServiceImpl implements CloudService {
         try {
             Map<?, ?> response =
                     cloudinary.uploader().upload(image.getBytes(), ObjectUtils.emptyMap());
-            return response.get(URL).toString();
+            return response.get("url").toString();
         } catch (IOException ex) {
             throw new ImageUploadException(ex.getMessage());
         }

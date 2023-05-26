@@ -1,4 +1,4 @@
-package dean.project.Dride.services.user_service;
+package dean.project.Dride.services.user_service.utility;
 
 import lombok.*;
 

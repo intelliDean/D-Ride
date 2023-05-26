@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import dean.project.Dride.config.distance.DistanceConfig;
+import dean.project.Dride.config.security.util.JwtUtil;
 import dean.project.Dride.data.dto.request.*;
 import dean.project.Dride.data.dto.response.api_response.BookRideResponse;
 import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
@@ -17,11 +18,11 @@ import dean.project.Dride.data.models.Status;
 import dean.project.Dride.data.models.User;
 import dean.project.Dride.data.repositories.PassengerRepository;
 import dean.project.Dride.exceptions.UserNotFoundException;
-import dean.project.Dride.services.user_service.CurrentUserService;
 import dean.project.Dride.services.cloud.CloudService;
 import dean.project.Dride.services.mocklocation_service.MockLocationService;
 import dean.project.Dride.services.notification.MailService;
 import dean.project.Dride.services.ride_services.RideService;
+import dean.project.Dride.services.user_service.utility.UtilityUserImpl;
 import dean.project.Dride.utilities.DrideUtilities;
 import dean.project.Dride.utilities.Paginate;
 import lombok.AllArgsConstructor;
@@ -35,11 +36,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -51,20 +55,23 @@ import static dean.project.Dride.utilities.Constants.*;
 @AllArgsConstructor
 @Slf4j
 public class PassengerServiceImpl implements PassengerService {
-    private final CurrentUserService currentUserService;
+    private final UtilityUserImpl utilityUserImpl;
     private final PassengerRepository passengerRepository;
     private final CloudService cloudService;
     private MockLocationService mockLocationService;
     private final PasswordEncoder passwordEncoder;
     private final DistanceConfig directionConfig;
     private final RideService rideService;
+    private final JwtUtil jwtUtil;
+    private final Context context;
     private final MailService mailService;
     private final ModelMapper modelMapper;
+    private final SpringTemplateEngine templateEngine;
     private final GlobalApiResponse.GlobalApiResponseBuilder globalResponse;
 
     @Override
     public GlobalApiResponse register(RegisterRequest request) {
-        User user = DrideUtilities.createUser(request.getCreateUser());
+        User user = utilityUserImpl.createUser(request.getCreateUser());
         user.getRoles().add(PASSENGER);
         Passenger passenger = Passenger.builder()
                 .user(user)
@@ -80,28 +87,37 @@ public class PassengerServiceImpl implements PassengerService {
 
     private String sendWelcomeMail(Passenger savedPassenger) {
         User user = savedPassenger.getUser();
+        String name = user.getName();
         EmailNotificationRequest mailRequest = new EmailNotificationRequest();
         mailRequest.setSubject(USER_SUBJECT);
-        mailRequest.getTo().add(new Recipient(user.getName(), user.getEmail()));
+        mailRequest.getTo().add(new Recipient(name, user.getEmail()));
 
-        String message = DrideUtilities.passengerWelcomeMail();
-        String link = DrideUtilities.generateVerificationLink(user.getId());
-        String content = String.format(message, user.getName(), link);
+        String link = jwtUtil.generateVerificationLink(user.getId());
+        // String message = DrideUtilities.passengerWelcomeMail();
+        //String content = String.format(message, user.getName(), link);
+        context.setVariables(Map.of("name", name, "verifyUrl", link));
 
-        mailRequest.setHtmlContent(content);
+        String htmlContent = templateEngine.process("passenger_welcome", context);
+        mailRequest.setHtmlContent(htmlContent);
         return mailService.sendHTMLMail(mailRequest);
     }
+
     private User currentUser() {
-        return currentUserService.currentUser();
+        return utilityUserImpl.currentUser();
+    }
+
+    @Override
+    public Optional<Passenger> getPassengerByUserId(Long userId) {
+        return passengerRepository.findPassengerByUser_Id(userId);
     }
 
     @Override
     public PassengerDTO getPassenger() {
-        Passenger passenger = currentPassenger();
-        return modelMapper.map(passenger, PassengerDTO.class);
+        return modelMapper.map(currentPassenger(), PassengerDTO.class);
     }
+
     private Passenger currentPassenger() {
-        return passengerRepository.findById(currentUser().getId())
+        return getPassengerByUserId(currentUser().getId())
                 .orElseThrow(UserNotFoundException::new);
     }
 
@@ -171,13 +187,6 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     @Override
-    public PassengerDTO getPassengerByEmail(String email) {
-        Passenger passenger = passengerRepository.findPassengerByUser_Email(email)
-                .orElseThrow(UserNotFoundException::new);
-        return modelMapper.map(passenger, PassengerDTO.class);
-    }
-
-    @Override
     public BookRideResponse<?> bookRide(RideRequest request) {
         BookRideRequest bookRideRequest = BookRideRequest.builder()
                 .origin(request.getOrigin())
@@ -187,7 +196,7 @@ public class PassengerServiceImpl implements PassengerService {
         var response = attemptBookRide(bookRideRequest);
         if (request.getRideStatus() == null || !request.getRideStatus().equals(Status.BOOKED)) {
             return new BookRideResponse<>(globalResponse
-                    .message(INCOMPLETE)
+                    .message("Incomplete Ride Booking")
                     .fare(response.getFare())
                     .estimatedTimeOfArrival(response.getEstimatedTimeOfArrival())
                     .build());
@@ -219,10 +228,6 @@ public class PassengerServiceImpl implements PassengerService {
                 .build();
     }
 
-    @Override
-    public Optional<Passenger> getPassengerByUserId(Long userId) {
-        return passengerRepository.findPassengerByUser_Id(userId);
-    }
 
     private DistanceMatrixElement getDistanceInformation(Location origin, Location destination) {
         RestTemplate restTemplate = new RestTemplate();
@@ -237,7 +242,7 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     private String buildDistanceRequestUrl(Location origin, Location destination) {
-        return directionConfig.getGoogleDistanceUrl() + "/" + JSON_CONSTANT + "?"
+        return directionConfig.getGoogleDistanceUrl() + "/" + "json" + "?"
                 + "destinations=" + DrideUtilities.buildLocation(destination) + "&origins="
                 + DrideUtilities.buildLocation(origin) + "&mode=driving" + "&traffic_model=pessimistic"
                 + "&departure_time=" + LocalDateTime.now().toEpochSecond(ZoneOffset.of("+01:00"))
@@ -251,7 +256,7 @@ public class PassengerServiceImpl implements PassengerService {
 //        registerResponse.setMessage("User Registration Successful");
 //        return globalResponse
 //                .id(savedPassenger.getId())
-//                .message("User Registration Successful")
+//                .message.html("User Registration Successful")
 //                .build();
 //    }
 }

@@ -18,7 +18,6 @@ public interface PassengerService {
     Paginate<PassengerDTO> getAllPassengers(int pageNumber);
     void deletePassenger();
     GlobalApiResponse attemptBookRide(BookRideRequest bookRideRequest);
-    PassengerDTO getPassengerByEmail(String email);
     BookRideResponse<?> bookRide(RideRequest request);
     GlobalApiResponse rateDriver(RateRequest request);
     Optional<Passenger> getPassengerByUserId(Long userId);

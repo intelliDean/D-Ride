@@ -1,4 +1,4 @@
-package dean.project.Dride.services.user_service;
+package dean.project.Dride.services.user_service.user;
 
 import dean.project.Dride.data.dto.request.CreateUser;
 import dean.project.Dride.data.dto.request.LoginRequest;
@@ -11,8 +11,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
 
 public interface UserService {
-    User createUser(CreateUser create);
-    GlobalApiResponse uploadProfileImage(MultipartFile profileImage, Long appUserId);
+    User currentUser();
+    GlobalApiResponse uploadProfileImage(MultipartFile profileImage);
     GlobalApiResponse verifyAccount(Long userId, String token);
     UserDTO getByEmail(String email);
     User getInnerUserByEmail(String email);

@@ -1,6 +1,5 @@
 package dean.project.Dride.config.security.providers;
 
-import com.twilio.jwt.accesstoken.Grant;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -14,8 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
-
-import static dean.project.Dride.utilities.SecurityUrls.INCORRECT_CREDENTIALS;
 
 @Component
 @AllArgsConstructor
@@ -36,7 +33,7 @@ public class DrideAuthenticationProvider implements AuthenticationProvider {
         if (passwordEncoder.matches(incomingPassword, userPassword)) {
             return new UsernamePasswordAuthenticationToken(userEmail, userPassword, userAuthorities);
         }
-        throw new BadCredentialsException(INCORRECT_CREDENTIALS);
+        throw new BadCredentialsException("Incorrect username or password");
     }
 
     @Override

@@ -8,14 +8,19 @@ import dean.project.Dride.config.distance.DistanceConfig;
 import dean.project.Dride.config.security.util.JwtUtil;
 import dean.project.Dride.config.sms.SMSConfig;
 import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
+import dean.project.Dride.data.models.User;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
+import org.modelmapper.spi.ValueReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.thymeleaf.context.Context;
 
 import static dean.project.Dride.utilities.Constants.*;
 
@@ -49,9 +54,9 @@ public class AppConfig {
     public Cloudinary cloudinary() {
         return new Cloudinary(
                 ObjectUtils.asMap(
-                        CLOUD_NAME, cloudName,
-                        CLOUD_API_KEY, cloudApiKey,
-                        API_SECRET, apiSecret));
+                        "cloud_name", cloudName,
+                        "api_key", cloudApiKey,
+                        "api_secret", apiSecret));
     }
 
     @Bean
@@ -67,12 +72,22 @@ public class AppConfig {
 
     @Bean
     public WebClient getWebClientBuilder() {
-        return WebClient
-                .builder()
+        return WebClient.builder()
                 .baseUrl(mailUrl)
-                .defaultHeader(MAIL_API_KEY, mailApiKey)
+                .defaultHeader("api-key", mailApiKey)
                 .build();
     }
+    @Bean
+    public Context context() {
+        return new Context();
+    }
+
+//    @Bean
+//    public TaskExecutor taskExecutor() {
+//        SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
+//        executor.setConcurrencyLimit(10); // Set the maximum number of concurrent threads
+//        return executor;
+//    }
 
     @Bean
     public ModelMapper mapper() {

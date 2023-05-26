@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+
+<h4>Dear <span th:text="${name}"></span>,</h4><br/><br/>
+<p>
+    Welcome to Dride, where we take you to your dream!<br/>
+    As a valued customer, we are thrilled to have you join our community of users.<br/>
+    Our goal is to provide you with an amazing experience, so sit back, relax and enjoy the ride.
+    <br/><br/>
+</p>
+<p>
+    To get started, please click the
+    <a th:href="@{{url}(url=${verifyUrl})} " target="_blank"
+       style="text-decoration: none;">
+        <button style="display: inline-block;
+        padding: 8px 15px;
+        background-color: #695904;
+        color: white;
+        border-width: 3px;
+        border-color: #a2c765;
+        border-style: solid;
+        border-radius: 7px;
+        cursor: pointer;">
+            Activate
+        </button>
+    </a><br/>
+
+    button to verify your account and gain<br/>
+    access to our wonderful offerings. We are confident that your addition to our team will have a
+    <br/>
+    positive impact, and we look forward to creating memories together.
+</p>
+<br/><br/>
+<p>
+    Thank you for choosing Dride, and welcome aboard.
+</p>
+<br/><br/><br/>
+<p>
+    Best regards,<br/><br/>
+    Adewunmi Adejoke<br/>
+    Experience Manager<br/>
+</p>
+</body>
+</html>

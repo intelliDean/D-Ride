@@ -3,7 +3,7 @@ package dean.project.Dride.config.security.services;
 
 import dean.project.Dride.config.security.users.AuthenticatedUser;
 import dean.project.Dride.data.models.User;
-import dean.project.Dride.services.user_service.UserService;
+import dean.project.Dride.services.user_service.user.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

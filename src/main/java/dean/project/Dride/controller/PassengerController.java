@@ -7,7 +7,7 @@ import dean.project.Dride.data.dto.request.RideRequest;
 import dean.project.Dride.data.dto.response.api_response.BookRideResponse;
 import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
 import dean.project.Dride.data.dto.response.entity_dtos.PassengerDTO;
-import dean.project.Dride.services.user_service.CurrentUserService;
+import dean.project.Dride.services.user_service.utility.UtilityUserImpl;
 import dean.project.Dride.services.notification.MailService;
 import dean.project.Dride.services.passenger_service.PassengerService;
 import dean.project.Dride.utilities.Paginate;
@@ -16,14 +16,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static dean.project.Dride.utilities.PassengerUrls.*;
 
 
 @RestController
-@RequestMapping(PASSENGER_BASE_URL)
+@RequestMapping("/api/v1/passenger")
 @AllArgsConstructor
 public class PassengerController {
-    private final CurrentUserService currentUserService;
+    private final UtilityUserImpl utilityUserImpl;
     private final PassengerService passengerService;
     private final MailService userService;
 
@@ -67,7 +66,7 @@ public class PassengerController {
     // @Secured(value ="ADMINISTRATOR")
     public ResponseEntity<String> deletePassenger() {
         passengerService.deletePassenger();
-        return ResponseEntity.ok(PASSENGER_DELETED);
+        return ResponseEntity.ok("Passenger deleted successfully");
     }
 
     @PostMapping("/bookRide")

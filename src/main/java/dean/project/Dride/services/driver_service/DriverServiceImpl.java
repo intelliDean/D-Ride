@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
+import dean.project.Dride.config.security.util.JwtUtil;
 import dean.project.Dride.data.dto.request.*;
 import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
 import dean.project.Dride.data.dto.response.entity_dtos.DriverDTO;
@@ -12,7 +13,7 @@ import dean.project.Dride.data.repositories.DriverRepository;
 import dean.project.Dride.exceptions.DrideException;
 import dean.project.Dride.exceptions.ImageUploadException;
 import dean.project.Dride.exceptions.UserNotFoundException;
-import dean.project.Dride.services.user_service.CurrentUserService;
+import dean.project.Dride.services.user_service.utility.UtilityUserImpl;
 import dean.project.Dride.services.cloud.CloudService;
 import dean.project.Dride.services.notification.MailService;
 import dean.project.Dride.services.ride_services.RideService;
@@ -20,6 +21,7 @@ import dean.project.Dride.utilities.DrideUtilities;
 import dean.project.Dride.utilities.Paginate;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
@@ -27,33 +29,39 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 
 import static dean.project.Dride.data.models.Role.DRIVER;
 import static dean.project.Dride.exceptions.ExceptionMessage.*;
 import static dean.project.Dride.utilities.Constants.*;
-import static dean.project.Dride.utilities.DriverUrls.COMPLETED;
 
 
 @Service
 @AllArgsConstructor
 @Slf4j
 public class DriverServiceImpl implements DriverService {
-    private final CurrentUserService currentUserService;
+    private final UtilityUserImpl utilityUserImpl;
     private final DriverRepository driverRepository;
     private final CloudService cloudService;
     private final ModelMapper modelMapper;
+    private final ObjectMapper objectMapper;
     private final MailService mailService;
+    private final SpringTemplateEngine templateEngine;
+    private final Context context;
+    private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
     private final RideService rideService;
     private final GlobalApiResponse.GlobalApiResponseBuilder globalResponse;
 
     @Override
     public GlobalApiResponse register(RegisterRequest request) {
-        User user = DrideUtilities.createUser(request.getCreateUser());
+        User user = utilityUserImpl.createUser(request.getCreateUser());
         user.getRoles().add(DRIVER);
 
         var imageUrl = cloudService.upload(request.getLicenseImage());
@@ -61,7 +69,7 @@ public class DriverServiceImpl implements DriverService {
 
         Driver driver = new Driver();
         driver.setUser(user);
-        int age = DrideUtilities.calculateAge(request.getDateOfBirth());
+        int age = utilityUserImpl.calculateAge(request.getDateOfBirth());
         if (age < 18) throw new DrideException(TOO_YOUNG);
         driver.setAge(age);
         driver.setDriverLicense(DriverLicense.builder()
@@ -71,7 +79,7 @@ public class DriverServiceImpl implements DriverService {
         Driver savedDriver = driverRepository.save(driver);
 
         user = savedDriver.getUser();
-        String response = mailService.sendHTMLMail(emailRequest(user.getEmail(), user.getName(), user.getId()));
+        String response = mailService.sendHTMLMail(emailRequest(user));
         return response == null
                 ? globalResponse.message(DRIVER_REG_FAILED).build()
                 : globalResponse.id(savedDriver.getId()).message(REG_SUCCESS).build();
@@ -88,57 +96,93 @@ public class DriverServiceImpl implements DriverService {
         Referee referee = createReferee(refereeRequest);
 
         updatedDriver.setReferee(referee);
-        return globalResponse.message(COMPLETED).build();
-    }
-
-    private Referee createReferee(RefereeRequest refereeRequest) {
-        int age = DrideUtilities.calculateAge(refereeRequest.getDateOfBirth());
-        Address address = modelMapper.map(refereeRequest, Address.class);
-        Referee referee = modelMapper.map(refereeRequest, Referee.class);
-        referee.setAge(age);
-        referee.setAddress(address);
-        return referee;
-    }
-
-    private Driver completeDriver(Driver driver, CompleteDriverRequest driverRequest) {
-        Address address = modelMapper.map(driverRequest, Address.class);
-        BankInformation bankInformation = modelMapper.map(driverRequest, BankInformation.class);
-        driver.setAddress(address);
-        driver.setBankInformation(bankInformation);
-        driver.setGender(driverRequest.getGender());
-        driver.setPhoneNumber(driverRequest.getPhoneNumber());
-        return driver;
-    }
-
-
-    private EmailNotificationRequest emailRequest(String email, String name, Long userId) {
-        EmailNotificationRequest request = new EmailNotificationRequest();
-        request.setSubject(USER_SUBJECT);
-        request.getTo().add(new Recipient(name, email));
-        String template = DrideUtilities.driverWelcomeMail();
-        String content = String.format(template, name, DrideUtilities.generateVerificationLink(userId));
-        request.setHtmlContent(content);
-        return request;
-    }
-
-    private Driver currentDriver() {
-        return getDriverByUserId(currentUserService.currentUser().getId())
-                .orElseThrow(UserNotFoundException::new);
-    }
-
-    @Override
-    public Optional<Driver> getDriverBy(Long driverId) {
-        return driverRepository.findById(driverId);
-    }
-
-    @Override
-    public DriverDTO getDriverById(Long driverId) {
-        return modelMapper.map(getDriver(driverId), DriverDTO.class);
+        return globalResponse.message("Driver information updated successfully").build();
     }
 
     private Driver getDriver(Long driverId) {
         return driverRepository.findById(driverId)
                 .orElseThrow(UserNotFoundException::new);
+    }
+
+    private Referee createReferee(RefereeRequest refereeRequest) {
+        int age = utilityUserImpl.calculateAge(refereeRequest.getDateOfBirth());
+        Address address = getAddress(refereeRequest);
+        return Referee.builder()
+                .firstName(refereeRequest.getFirstName())
+                .lastName(refereeRequest.getLastName())
+                .gender(refereeRequest.getGender())
+                .occupation(refereeRequest.getOccupation())
+                .phoneNumber(refereeRequest.getPhoneNumber())
+                .age(age)
+                .address(address)
+                .build();
+    }
+
+    private static Address getAddress(RefereeRequest refereeRequest) {
+        return Address.builder()
+                .houseNumber(refereeRequest.getHouseNumber())
+                .street(refereeRequest.getStreet())
+                .city(refereeRequest.getCity())
+                .state(refereeRequest.getState())
+                .country(refereeRequest.getCountry())
+                .build();
+    }
+
+    private Driver completeDriver(Driver driver, CompleteDriverRequest driverRequest) {
+        Address address = getAddress(driverRequest);
+        driver.setAddress(address);
+
+        BankInformation bankInformation = getBankInformation(driverRequest);
+        driver.setBankInformation(bankInformation);
+
+        driver.setGender(driverRequest.getGender());
+        driver.setPhoneNumber(driverRequest.getPhoneNumber());
+        return driver;
+    }
+
+    private static BankInformation getBankInformation(CompleteDriverRequest driverRequest) {
+        return BankInformation.builder()
+                .accountNumber(driverRequest.getAccountNumber())
+                .accountName(driverRequest.getAccountName())
+                .bankName(driverRequest.getBankName())
+                .build();
+    }
+
+    private static Address getAddress(CompleteDriverRequest driverRequest) {
+        return Address.builder()
+                .houseNumber(driverRequest.getHouseNumber())
+                .street(driverRequest.getStreet())
+                .city(driverRequest.getCity())
+                .state(driverRequest.getState())
+                .country(driverRequest.getCountry())
+                .build();
+    }
+
+    private EmailNotificationRequest emailRequest(User user) {
+        EmailNotificationRequest request = new EmailNotificationRequest();
+        String name = user.getName();
+        request.setSubject(USER_SUBJECT);
+        request.getTo().add(new Recipient(name, user.getEmail()));
+        //String template = DrideUtilities.driverWelcomeMail();
+        //String content = String.format(template, name, jwtUtil.generateVerificationLink(user.getId()));
+        String link = jwtUtil.generateVerificationLink(user.getId());
+        context.setVariables(Map.of("name", name, "verifyUrl", link));
+        String content = templateEngine.process("driver_welcome", context);
+        request.setHtmlContent(content);
+        return request;
+    }
+    private Driver currentDriver() {
+        return getDriverByUserId(currentUser().getId())
+                .orElseThrow(UserNotFoundException::new);
+    }
+
+    private User currentUser() {
+        return utilityUserImpl.currentUser();
+    }
+
+    @Override
+    public DriverDTO getCurrentDriver() {
+        return modelMapper.map(currentDriver(), DriverDTO.class);
     }
 
     @Override
@@ -153,20 +197,33 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public DriverDTO updateDriver(JsonPatch jsonPatch) {
-        Driver driver = currentDriver();
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.convertValue(driver, JsonNode.class);
+        DiverEmailFix driverEmailFix = getDriverEmailFix();
+
+        JsonNode jsonNode = objectMapper.convertValue(driverEmailFix.driver(), JsonNode.class);
         try {
             JsonNode updatedNode = jsonPatch.apply(jsonNode);
 
             Driver updatedDriver = objectMapper.convertValue(updatedNode, Driver.class);
+            updatedDriver.getUser().setEmail(driverEmailFix.email());
             driverRepository.save(updatedDriver);
-            return modelMapper.map(driver, DriverDTO.class);
+            return modelMapper.map(driverEmailFix.driver(), DriverDTO.class);
 
         } catch (JsonPatchException e) {
             throw new DrideException(UPDATE_FAILED);
         }
     }
+
+    @NotNull
+    private DiverEmailFix getDriverEmailFix() {
+        Driver driver = currentDriver();
+        String email = driver.getUser().getEmail();
+        driver.getUser().setEmail(null);
+        driver = driverRepository.save(driver);
+
+        return new DiverEmailFix(driver, email);
+    }
+
+    private record DiverEmailFix(Driver driver, String email) {}
 
     @Override
     public Optional<Driver> getDriverByUserId(Long userId) {
@@ -189,13 +246,6 @@ public class DriverServiceImpl implements DriverService {
     @Override
     public void saveDriver(Driver driver) {
         driverRepository.save(driver);
-    }
-
-    @Override
-    public DriverDTO getDriverByEMail(String email) {
-        Driver driver = driverRepository.findDriverByUser_Email(email)
-                .orElseThrow(UserNotFoundException::new);
-        return modelMapper.map(driver, DriverDTO.class);
     }
 
     @Override
@@ -227,7 +277,7 @@ public class DriverServiceImpl implements DriverService {
         rideService.save(ride);
 
         return globalResponse
-                .message(RIDE_STARTED)
+                .message("Ride started successfully")
                 .build();
     }
 
@@ -243,7 +293,7 @@ public class DriverServiceImpl implements DriverService {
 
         rideService.save(ride);
         return globalResponse
-                .message(RIDE_ENDED)
+                .message("Ride ended")
                 .fare(ride.getFare())   //todo: I should call google Api to calculate the eventual fare
                 .build();
     }

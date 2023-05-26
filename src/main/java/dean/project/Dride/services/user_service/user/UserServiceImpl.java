@@ -1,9 +1,6 @@
-package dean.project.Dride.services.user_service;
+package dean.project.Dride.services.user_service.user;
 
-import dean.project.Dride.config.security.filters.DrideAuthenticationFilter;
-import dean.project.Dride.config.security.users.AuthenticatedUser;
-import dean.project.Dride.data.dto.request.CreateUser;
-import dean.project.Dride.data.dto.request.LoginRequest;
+import dean.project.Dride.config.security.util.JwtUtil;
 import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
 import dean.project.Dride.data.dto.response.entity_dtos.UserDTO;
 import dean.project.Dride.data.models.Admin;
@@ -17,7 +14,7 @@ import dean.project.Dride.services.admin_service.AdminService;
 import dean.project.Dride.services.cloud.CloudService;
 import dean.project.Dride.services.driver_service.DriverService;
 import dean.project.Dride.services.passenger_service.PassengerService;
-import dean.project.Dride.utilities.DrideUtilities;
+import dean.project.Dride.services.user_service.utility.UtilityUserImpl;
 import dean.project.Dride.utilities.Paginate;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -25,38 +22,45 @@ import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.lang.reflect.Type;
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Optional;
 
-import static dean.project.Dride.utilities.Constants.*;
+import static dean.project.Dride.utilities.Constants.NUMBER_OF_ITEMS_PER_PAGE;
+import static dean.project.Dride.utilities.Constants.SUCCESS;
 
 
 @Service
 @AllArgsConstructor
 public class UserServiceImpl implements UserService {
+    private final UtilityUserImpl utilityUserImpl;
     private final PassengerService passengerService;
     private final DriverService driverService;
     private final CloudService cloudService;
     private final AdminService adminService;
     private final ModelMapper modelMapper;
     private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
     private final GlobalApiResponse.GlobalApiResponseBuilder globalResponse;
 
     @Override
-    public GlobalApiResponse uploadProfileImage(MultipartFile profileImage, Long userId) {
-        User user = userById(userId);
-        String imageUrl = cloudService.upload(profileImage);
-        if (imageUrl.isEmpty()) throw new DrideException(UPLOAD_FAILED);
+    public User currentUser() {
+        return utilityUserImpl.currentUser();
+    }
+
+    @Override
+    public GlobalApiResponse uploadProfileImage(MultipartFile profileImage) {
+        String imageUrl;
+        try {
+            imageUrl = cloudService.upload(profileImage);
+        } catch (Exception e) {
+            throw new DrideException("Image upload failed");
+        }
+        User user = currentUser();
         user.setProfileImage(imageUrl);
         userRepository.save(user);
         return globalResponse
@@ -64,19 +68,9 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
-    public User createUser(CreateUser create) {
-        User user = new User();
-        user.setName(create.getName());
-        user.setEmail(create.getEmail());
-        user.setPassword(passwordEncoder.encode(create.getPassword()));
-        user.setCreatedAt(LocalDateTime.now().toString());
-        user.setRoles(new HashSet<>());
-        return user;
-    }
-
     private UserRecord getUserRecord(Long appUserId) {
         if (!userRepository.existsById(appUserId))
-            throw new UserNotFoundException(USER_NOT_EXIST);
+            throw new UserNotFoundException("User does not exist");
 
         Optional<Driver> driver = Optional.empty();
         Optional<Admin> admin = Optional.empty();
@@ -99,10 +93,11 @@ public class UserServiceImpl implements UserService {
             Optional<Passenger> passenger) {
     }
 
+
     @Override
     public GlobalApiResponse verifyAccount(Long userId, String token) {
-        if (DrideUtilities.isTokenSigned(token)) return getVerifiedResponse(userId);
-        throw new DrideException(String.format(VERIFY_FAILED, userId));
+        if (jwtUtil.tokenSigned(token)) return getVerifiedResponse(userId);
+        throw new DrideException(String.format("Account verification for user with %d failed", userId));
     }
 
     private GlobalApiResponse getVerifiedResponse(Long userId) {

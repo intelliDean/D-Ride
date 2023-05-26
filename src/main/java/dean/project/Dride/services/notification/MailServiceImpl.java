@@ -1,14 +1,11 @@
 package dean.project.Dride.services.notification;
 
-import dean.project.Dride.config.mail.MailConfig;
-import dean.project.Dride.config.security.users.AuthenticatedUser;
 import dean.project.Dride.data.dto.request.EmailNotificationRequest;
 import dean.project.Dride.data.models.User;
-import dean.project.Dride.exceptions.UserNotFoundException;
-import dean.project.Dride.services.user_service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -23,6 +20,7 @@ public class MailServiceImpl implements MailService {
 
     @Override
     public String sendHTMLMail(EmailNotificationRequest request) {
+
         return webClient
                 .post()
                 .bodyValue(request)

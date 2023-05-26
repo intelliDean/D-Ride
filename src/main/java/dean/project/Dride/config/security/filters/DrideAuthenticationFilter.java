@@ -1,13 +1,10 @@
 package dean.project.Dride.config.security.filters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dean.project.Dride.config.security.users.AuthenticatedUser;
 import dean.project.Dride.config.security.util.JwtUtil;
-import dean.project.Dride.data.models.Role;
 import dean.project.Dride.data.models.User;
 import dean.project.Dride.exceptions.DrideException;
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -16,19 +13,14 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 import static dean.project.Dride.utilities.Constants.AUTHENTICATION_FAILED;
-import static dean.project.Dride.utilities.SecurityUrls.ACCESS_TOKEN;
-import static dean.project.Dride.utilities.SecurityUrls.REFRESH_TOKEN;
 
 @AllArgsConstructor
 public class DrideAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
@@ -67,7 +59,7 @@ public class DrideAuthenticationFilter extends UsernamePasswordAuthenticationFil
                 return getAuthentication(authenticationResult);
             }
         } catch (IOException e) {
-            throw new DrideException(e.getMessage());
+            throw new DrideException("Authentication not successful");
         }
 
         throw new DrideException(AUTHENTICATION_FAILED);
@@ -89,14 +81,14 @@ public class DrideAuthenticationFilter extends UsernamePasswordAuthenticationFil
 
         Map<String, Object> claims = new HashMap<>();
 
-        String user = (String) authResult.getPrincipal();
-        authResult.getAuthorities().forEach(authority -> claims.put("claim", authority));
+        String email = (String) authResult.getPrincipal();
+        authResult.getAuthorities().forEach(role -> claims.put("claim", role));
 
 
-        String accessToken = jwtUtil.generateAccessToken(claims, user);
-        String refreshToken = jwtUtil.generateRefreshToken(user);
+        String accessToken = jwtUtil.generateAccessToken(claims, email);
+        String refreshToken = jwtUtil.generateRefreshToken(email);
 
-        Map<String, String> tokens = Map.of(ACCESS_TOKEN, accessToken, REFRESH_TOKEN, refreshToken);
+        Map<String, String> tokens = Map.of("access_token", accessToken, "refresh_token", refreshToken);
 
         ObjectMapper mapper = new ObjectMapper();
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

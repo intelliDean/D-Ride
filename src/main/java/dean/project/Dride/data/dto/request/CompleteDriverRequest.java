@@ -9,15 +9,24 @@ import lombok.*;
 @Setter
 @Builder
 public class CompleteDriverRequest {
+
     private Integer houseNumber;
+
     private String street;
+
     private String city;
+
     private String state;
+
     private String country;
+
     private String accountName;
+
     private String accountNumber;
+
     private String bankName;
+
     private String phoneNumber;
+
     private Gender gender;
-    //private RefereeRequest refereeRequest;
 }

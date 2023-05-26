@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify Email</title>
+</head>
+<body>
+<h4>Dear <span th:text="${name}"></span>,</h4>
+<p>We are delighted to invite you to join our team at Dride as an admin.
+    Your skills and experience will be a valuable contribution to our company.<br/>
+</p>
+<p>
+    To activate your admin privileges, kindly on click
+    <a th:href="@{{url}(url=${verifyUrl})} " target="_blank"
+       style="text-decoration: none;">
+        <button style="display: inline-block;
+        padding: 8px 15px;
+        background-color: #695904;
+        color: white;
+        border-width: 3px;
+        border-color: #a2c765;
+        border-style: solid;
+        border-radius: 7px;
+        cursor: pointer;">
+            Activate
+        </button>
+    </a><br/>
+</p>
+<p>Once activated, you will have access to the admin portal where you can set up
+    your account and access necessary tools for overseeing and <br/>managing various
+    aspects of our company's operations.<br/><br/>
+</p>
+<p>
+    We have full confidence in your ability to excel in this role.
+    We are excited to have you join our team and look forward to working together
+    to further Dride's success.<br/>
+</p>
+<p>
+    If you have any questions or need assistance, please reach out to us.<br/>
+</p>
+<p>
+    Best regards,<br/>
+    <strong>Michael Dean</strong><br/>
+    CEO<br/>
+    Dride<br/>
+</p>
+</body>
+</html>

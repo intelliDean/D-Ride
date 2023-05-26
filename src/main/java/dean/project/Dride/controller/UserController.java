@@ -3,9 +3,10 @@ package dean.project.Dride.controller;
 
 import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
 import dean.project.Dride.data.dto.response.entity_dtos.UserDTO;
+import dean.project.Dride.data.models.User;
 import dean.project.Dride.exceptions.DrideException;
 import dean.project.Dride.services.notification.MailService;
-import dean.project.Dride.services.user_service.UserService;
+import dean.project.Dride.services.user_service.user.UserService;
 import dean.project.Dride.utilities.Paginate;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -15,33 +16,23 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import static dean.project.Dride.utilities.UserUrls.*;
 
 @RestController
-@RequestMapping(USER_BASE_URL)
+@RequestMapping("/api/v1/user")
 @AllArgsConstructor
 public class UserController {
     private final UserService userService;
     private final MailService mailService;
     private final GlobalApiResponse.GlobalApiResponseBuilder globalResponse;
 
-    @PostMapping(value = UPLOAD_IMAGE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "To upload any user profile picture")
-    public ResponseEntity<GlobalApiResponse> uploadProfileImage(
-            @RequestParam MultipartFile file,  @PathVariable Long userId) {
-        try {
-            GlobalApiResponse response = userService.uploadProfileImage(file, userId);
-            return ResponseEntity.ok(response);
-        } catch (DrideException exception) {
-            return ResponseEntity.badRequest().body(
-                    globalResponse
-                            .message(exception.getMessage())
-                            .build()
-            );
-        }
+    public ResponseEntity<GlobalApiResponse> uploadProfileImage(@RequestParam MultipartFile file) {
+        GlobalApiResponse response = userService.uploadProfileImage(file);
+        return ResponseEntity.ok(response);
     }
 
-    @PostMapping(VERIFY_ACCOUNT)
+    @PostMapping("/account/verify")
     @Operation(summary = "to verify the user before enabling their account")
     public ResponseEntity<GlobalApiResponse> verifyAccount(
             @Parameter(
@@ -65,7 +56,7 @@ public class UserController {
         }
     }
 
-    @GetMapping(USER_ID)
+    @GetMapping("{userId}")
     @Operation(summary = "To get a user by user Id")
     //@Secured(value = {"ADMINISTRATOR", "PASSENGER", "DRIVER"})
     public ResponseEntity<UserDTO> getUserById(
@@ -76,7 +67,7 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @GetMapping(GET_USER_BY_MAIL)
+    @GetMapping("mail")
     @Operation(summary = "To get a user by user email")
     public ResponseEntity<UserDTO> getUserByEmail(
             @Parameter(name = "email", description = "The email of the user to get", required = true)
@@ -93,5 +84,10 @@ public class UserController {
             @RequestParam int pageNumber) {
         Paginate<UserDTO> users = userService.getAllUsers(pageNumber);
         return ResponseEntity.ok(users);
+    }
+
+    @GetMapping("current")
+    public ResponseEntity<User> currentUser() {
+        return ResponseEntity.ok(userService.currentUser());
     }
 }

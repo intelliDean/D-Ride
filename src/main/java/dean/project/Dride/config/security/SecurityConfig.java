@@ -19,11 +19,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.cors.CorsConfiguration;
 
-import static dean.project.Dride.utilities.AdminUrls.ADMIN_BASE_URL;
-import static dean.project.Dride.utilities.Constants.LOGIN_URL;
-import static dean.project.Dride.utilities.SecurityUrls.*;
+import java.util.Arrays;
+import java.util.List;
+
+import static dean.project.Dride.utilities.Constants.*;
 
 
 @Configuration
@@ -40,7 +41,7 @@ public class SecurityConfig {
     private final JwtUtil jwtUtil;
     private final String[] AUTHENTICATION_WHITE_LIST = {DRIVER_REGISTER, PASSENGER_REGISTER,
             ADMIN_BASE_URL, LOGIN_URL, VERIFY_USER, ADMIN_DETAILS};
-    private final String[] SWAGGERS = {SWAGGER_HTML, SWAGGER_UI, SWAGGER_API_DOCS, SWAGGER_API_DOCS2};
+    private final String[] SWAGGERS = {"/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**"};
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -68,6 +69,18 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
                 .and()
                 .build();
-
     }
 }
+
+
+
+//        http
+//            .cors(cors -> cors.configurationSource(request -> {
+//                CorsConfiguration configuration = new CorsConfiguration();
+//                configuration.setAllowedOrigins(List.of("http://example.com")); // Set the allowed origins
+//                configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE")); // Set the allowed HTTP methods
+//                configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type")); // Set the allowed headers
+//                return configuration;
+//            }));
+//            // other security configurations...
+

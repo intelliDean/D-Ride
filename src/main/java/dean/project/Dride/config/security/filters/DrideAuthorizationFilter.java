@@ -2,7 +2,6 @@ package dean.project.Dride.config.security.filters;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dean.project.Dride.config.security.users.AuthenticatedUser;
 import dean.project.Dride.config.security.util.JwtUtil;
 import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
 import jakarta.servlet.FilterChain;
@@ -17,11 +16,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 import static dean.project.Dride.utilities.Constants.*;
@@ -39,43 +38,31 @@ public class DrideAuthorizationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
+
         String authHeader = request.getHeader(AUTHORIZATION);
         String servletPath = request.getServletPath();
-        UserDetails userDetails;
-        String email;
 
-        if (grantFreeAccessTo(servletPath)) {
-            filterChain.doFilter(request, response);
-        } else {
-            if (StringUtils.hasText(authHeader) && StringUtils.startsWithIgnoreCase(authHeader, BEARER)) {
-                String token = authHeader.substring(BEARER.length());
-
-                email = jwtUtil.extractUsernameFromToken(token);
-                userDetails = userDetailsService.loadUserByUsername(email);
-
-                if (jwtUtil.isTokenSigned(token)) {
-                    savedToContext(userDetails);
-                    filterChain.doFilter(request, response);
-                } else {
-                    handleAuthenticationFailure(response);
-                }
+        if (StringUtils.hasText(authHeader) && StringUtils.startsWithIgnoreCase(authHeader, "Bearer ")) {
+            String authToken = authHeader.substring("Bearer ".length());
+            if (jwtUtil.isTokenValid(authToken)) {
+                String email = jwtUtil.extractUsernameFromToken(authToken);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                savedToContext(request, userDetails);
+            } else {
+                handleAuthenticationFailure(response);
             }
         }
+        filterChain.doFilter(request, response);
     }
 
-    private static void savedToContext(UserDetails userDetails) {
+    private static void savedToContext(HttpServletRequest request, UserDetails userDetails) {
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
         //Note: After authentication, do not save the  user password in security context holder.
+        authenticationToken.setDetails(
+                new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-    }
-
-    private boolean grantFreeAccessTo(String servletPath) {
-        List<String> allowedPaths = List.of(LOGIN_URL, DRIVER_REGISTER, PASSENGER_REGISTER,
-                ADMIN_BASE_URL, VERIFY_USER, ADMIN_DETAILS,
-                "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**");
-        return allowedPaths.contains(servletPath);
     }
 
     private void handleAuthenticationFailure(HttpServletResponse response) throws IOException {
@@ -83,5 +70,4 @@ public class DrideAuthorizationFilter extends OncePerRequestFilter {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         objectMapper.writeValue(response.getOutputStream(), failureMessage);
     }
-
 }

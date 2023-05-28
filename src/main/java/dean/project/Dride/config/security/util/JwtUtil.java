@@ -76,7 +76,7 @@ public class JwtUtil {
                 .compact();
     }
 
-    public boolean tokenSigned(String token) {
+    public boolean isTokenValid(String token) {
         try {
             Jwts.parserBuilder()
                     .setSigningKey(TextCodec.BASE64.decode(jwtSecret))

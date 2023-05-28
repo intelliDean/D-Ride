@@ -96,7 +96,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public GlobalApiResponse verifyAccount(Long userId, String token) {
-        if (jwtUtil.tokenSigned(token)) return getVerifiedResponse(userId);
+        if (jwtUtil.isTokenValid(token)) return getVerifiedResponse(userId);
         throw new DrideException(String.format("Account verification for user with %d failed", userId));
     }
 

@@ -26,24 +26,34 @@ public class UserController {
     private final GlobalApiResponse.GlobalApiResponseBuilder globalResponse;
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "To upload any user profile picture")
-    public ResponseEntity<GlobalApiResponse> uploadProfileImage(@RequestParam MultipartFile file) {
+    @Operation(summary = "Upload User Profile Picture")
+    public ResponseEntity<GlobalApiResponse> uploadProfileImage(
+            @Parameter(
+                    name = "file",
+                    description = "Image file to upload",
+                    required = true
+            )
+            @RequestParam MultipartFile file) {
         GlobalApiResponse response = userService.uploadProfileImage(file);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/account/verify")
-    @Operation(summary = "to verify the user before enabling their account")
+    @Operation(summary = "To verify user before enabling their account")
     public ResponseEntity<GlobalApiResponse> verifyAccount(
             @Parameter(
                     name = "userId",
-                    description = "The  is of the whose account is to be verified", required = true)
+                    description = "ID of the user to verify",
+                    required = true
+            )
             @RequestParam Long userId,
             @Parameter(
                     name = "token",
-                    description = "The token sent to the user via email after registration", required = true)
-            @RequestParam String token) {
-
+                    description = "The token sent to the user via email after registration",
+                    required = true
+            )
+            @RequestParam String token
+    ) {
         try {
             var response = userService.verifyAccount(userId, token);
             return ResponseEntity.ok(response);
@@ -55,39 +65,52 @@ public class UserController {
             );
         }
     }
+     @GetMapping("current")
+    @Operation(summary = "Current User")
+    public ResponseEntity<User> currentUser() {
+        return ResponseEntity.ok(userService.currentUser());
+    }
 
     @GetMapping("{userId}")
-    @Operation(summary = "To get a user by user Id")
+    @Operation(summary = "Get User By ID")
     //@Secured(value = {"ADMINISTRATOR", "PASSENGER", "DRIVER"})
     public ResponseEntity<UserDTO> getUserById(
-            @Parameter(name = "userId", description = "The Id of the user to get", required = true)
-            @PathVariable Long userId) {
-
+            @Parameter(
+                    name = "userId",
+                    description = "Fetch user with this ID",
+                    required = true
+            )
+            @PathVariable Long userId
+    ) {
         UserDTO user = userService.getByUserId(userId);
         return ResponseEntity.ok(user);
     }
 
     @GetMapping("mail")
-    @Operation(summary = "To get a user by user email")
+    @Operation(summary = "Get User By Email")
     public ResponseEntity<UserDTO> getUserByEmail(
-            @Parameter(name = "email", description = "The email of the user to get", required = true)
-            @RequestParam String email) {
+            @Parameter(
+                    name = "email",
+                    description = "Fetch the user with email",
+                    required = true
+            )
+            @RequestParam String email
+    ) {
         UserDTO user = userService.getByEmail(email);
         return ResponseEntity.ok(user);
     }
 
     @GetMapping
-    @Operation(summary = "To get all users in the database")
+    @Operation(summary = "Get All Users")
     //@Secured(value ="ADMINISTRATOR")
     public ResponseEntity<Paginate<UserDTO>> getAllUsers(
-            @Parameter(name = "pageNumber", description = "The page number you want to view")
-            @RequestParam int pageNumber) {
+            @Parameter(
+                    name = "pageNumber",
+                    description = "Page to view"
+            )
+            @RequestParam int pageNumber
+    ) {
         Paginate<UserDTO> users = userService.getAllUsers(pageNumber);
         return ResponseEntity.ok(users);
-    }
-
-    @GetMapping("current")
-    public ResponseEntity<User> currentUser() {
-        return ResponseEntity.ok(userService.currentUser());
     }
 }

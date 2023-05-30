@@ -9,8 +9,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static dean.project.Dride.utilities.Constants.*;
-
 
 @Service
 @AllArgsConstructor

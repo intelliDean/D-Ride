@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import dean.project.Dride.config.distance.DistanceConfig;
-import dean.project.Dride.config.security.util.JwtUtil;
+import dean.project.Dride.config.security.utilities.JwtUtil;
 import dean.project.Dride.data.dto.request.*;
 import dean.project.Dride.data.dto.response.api_response.BookRideResponse;
 import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
@@ -70,7 +70,7 @@ public class PassengerServiceImpl implements PassengerService {
     private final GlobalApiResponse.GlobalApiResponseBuilder globalResponse;
 
     @Override
-    public GlobalApiResponse register(RegisterRequest request) {
+    public GlobalApiResponse register(RegisterPassengerRequest request) {
         User user = utilityUserImpl.createUser(request.getCreateUser());
         user.getRoles().add(PASSENGER);
         Passenger passenger = Passenger.builder()
@@ -93,8 +93,6 @@ public class PassengerServiceImpl implements PassengerService {
         mailRequest.getTo().add(new Recipient(name, user.getEmail()));
 
         String link = jwtUtil.generateVerificationLink(user.getId());
-        // String message = DrideUtilities.passengerWelcomeMail();
-        //String content = String.format(message, user.getName(), link);
         context.setVariables(Map.of("name", name, "verifyUrl", link));
 
         String htmlContent = templateEngine.process("passenger_welcome", context);
@@ -112,7 +110,7 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     @Override
-    public PassengerDTO getPassenger() {
+    public PassengerDTO getCurrentPassenger() {
         return modelMapper.map(currentPassenger(), PassengerDTO.class);
     }
 

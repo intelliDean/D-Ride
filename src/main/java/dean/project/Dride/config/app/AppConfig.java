@@ -5,30 +5,21 @@ import com.cloudinary.utils.ObjectUtils;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dean.project.Dride.config.distance.DistanceConfig;
-import dean.project.Dride.config.security.util.JwtUtil;
 import dean.project.Dride.config.sms.SMSConfig;
 import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
-import dean.project.Dride.data.models.User;
+import io.jsonwebtoken.SignatureAlgorithm;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
-import org.modelmapper.spi.ValueReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
-import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.thymeleaf.context.Context;
 
-import java.security.SecureRandom;
-import java.util.Map;
-
-import static dean.project.Dride.utilities.Constants.*;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.Key;
 
 @Configuration
 public class AppConfig {
@@ -83,17 +74,11 @@ public class AppConfig {
                 .defaultHeader("api-key", mailApiKey)
                 .build();
     }
+
     @Bean
     public Context context() {
         return new Context();
     }
-
-//    @Bean
-//    public TaskExecutor taskExecutor() {
-//        SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
-//        executor.setConcurrencyLimit(10); // Set the maximum number of concurrent threads
-//        return executor;
-//    }
 
     @Bean
     public ModelMapper mapper() {
@@ -111,7 +96,7 @@ public class AppConfig {
     }
 
 
-     @Bean
+    @Bean
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -119,8 +104,10 @@ public class AppConfig {
     }
 
     @Bean
-    public JwtUtil jwtUtil() {
-        return new JwtUtil(jwtSecret);
+    public Key getSecretKey() {
+        return new SecretKeySpec(
+                jwtSecret.getBytes(),
+                SignatureAlgorithm.HS512.getJcaName());
     }
 
     @Bean
@@ -132,7 +119,7 @@ public class AppConfig {
 //    public Key getSecretKey() {
 //        KeyGenerator keyGen;
 //        try {
-//            keyGen = KeyGenerator.getInstance("HmacSHA512");     //specify the algorithm
+//            keyGen = KeyGenerator.getInstance(SignatureAlgorithm.HS512.getJcaName());     //specify the algorithm
 //        } catch (NoSuchAlgorithmException e) {
 //            throw new RuntimeException(e);
 //        }
@@ -141,8 +128,12 @@ public class AppConfig {
 //        return keyGen.generateKey();
 //    }
 
-//    @Bean
-//    public Key secretKey() {
-//        return new SecretKeySpec(jwtSecret.getBytes(), SignatureAlgorithm.HS512.getJcaName());
+    //    @Bean
+//    public TaskExecutor taskExecutor() {
+//        SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
+//        executor.setConcurrencyLimit(10); // Set the maximum number of concurrent threads
+//        return executor;
 //    }
+
+
 }

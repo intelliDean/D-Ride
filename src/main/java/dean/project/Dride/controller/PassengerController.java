@@ -2,20 +2,21 @@ package dean.project.Dride.controller;
 
 import com.github.fge.jsonpatch.JsonPatch;
 import dean.project.Dride.data.dto.request.RateRequest;
-import dean.project.Dride.data.dto.request.RegisterRequest;
+import dean.project.Dride.data.dto.request.RegisterPassengerRequest;
 import dean.project.Dride.data.dto.request.RideRequest;
 import dean.project.Dride.data.dto.response.api_response.BookRideResponse;
 import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
 import dean.project.Dride.data.dto.response.entity_dtos.PassengerDTO;
-import dean.project.Dride.services.user_service.utility.UtilityUserImpl;
 import dean.project.Dride.services.notification.MailService;
 import dean.project.Dride.services.passenger_service.PassengerService;
+import dean.project.Dride.services.user_service.utility.UtilityUserImpl;
 import dean.project.Dride.utilities.Paginate;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 
 
 @RestController
@@ -28,8 +29,14 @@ public class PassengerController {
 
 
     @PostMapping
+    @Operation(summary = "register passenger")
     public ResponseEntity<GlobalApiResponse> register(
-            @RequestBody RegisterRequest create) {
+            @Parameter(
+                    name = "create",
+                    description = "DTO with passenger info",
+                    required = true
+            )
+            @RequestBody RegisterPassengerRequest create) {
         GlobalApiResponse registerResponse = passengerService.register(create);
         return ResponseEntity.status(HttpStatus.CREATED).body(registerResponse);
     }
@@ -37,25 +44,39 @@ public class PassengerController {
 
     @GetMapping
     //@Secured(value ={"ADMINISTRATOR", "PASSENGER"})
-    public ResponseEntity<PassengerDTO> getPassengerById() {
-        PassengerDTO foundPassenger = passengerService.getPassenger();
+    @Operation(summary = "current passenger")
+    public ResponseEntity<PassengerDTO> currentPassenger() {
+        PassengerDTO foundPassenger = passengerService.getCurrentPassenger();
         return ResponseEntity.status(HttpStatus.OK).body(foundPassenger);
     }
 
     @GetMapping("/all")
     //@Secured(value ="ADMINISTRATOR")
-    public ResponseEntity<Paginate<PassengerDTO>> getAllPassengers(@RequestParam int pageNumber) {
+    @Operation(summary = "fetch all passengers")
+    public ResponseEntity<Paginate<PassengerDTO>> getAllPassengers(
+            @Parameter(
+                    name = "pageNumber",
+                    description = "page to view",
+                    required = true
+            )
+            @RequestParam int pageNumber) {
         Paginate<PassengerDTO> response = passengerService.getAllPassengers(pageNumber);
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("update")
     //@Secured(value ="PASSENGER")
+    @Operation(summary = "update passenger info in patches")
     public ResponseEntity<?> updatePassenger(
+            @Parameter(
+                    name = "updatePatch",
+                    description = "JsonPatch syntax",
+                    required = true
+            )
             @RequestBody JsonPatch updatePatch) {
         try {
             PassengerDTO response = passengerService
-                    .updatePassenger( updatePatch);
+                    .updatePassenger(updatePatch);
             return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (Exception exception) {
             return ResponseEntity.badRequest().body(exception.getMessage());
@@ -64,6 +85,7 @@ public class PassengerController {
 
     @DeleteMapping("delete")
     // @Secured(value ="ADMINISTRATOR")
+    @Operation(summary = "delete passenger")
     public ResponseEntity<String> deletePassenger() {
         passengerService.deletePassenger();
         return ResponseEntity.ok("Passenger deleted successfully");
@@ -71,7 +93,14 @@ public class PassengerController {
 
     @PostMapping("/bookRide")
     //@Secured(value ="PASSENGER")
-    public ResponseEntity<BookRideResponse<?>> bookRide(@RequestBody RideRequest request) {
+    @Operation(summary = "passenger books a ride")
+    public ResponseEntity<BookRideResponse<?>> bookRide(
+            @Parameter(
+                    name = "request",
+                    description = "Book ride request",
+                    required = true
+            )
+            @RequestBody RideRequest request) {
         var response = passengerService.bookRide(request);
         return ResponseEntity.ok(response);
     }
@@ -79,7 +108,14 @@ public class PassengerController {
 
     @PostMapping("/rate")
     //@Secured(value ="PASSENGER")
-    public ResponseEntity<GlobalApiResponse> rateDriver(@RequestBody RateRequest request) {
+    @Operation(summary = "passenger rates driver")
+    public ResponseEntity<GlobalApiResponse> rateDriver(
+            @Parameter(
+                    name = "request",
+                    description = "Rate driver request",
+                    required = true
+            )
+            @RequestBody RateRequest request) {
         GlobalApiResponse response = passengerService.rateDriver(request);
         return ResponseEntity.ok(response);
     }

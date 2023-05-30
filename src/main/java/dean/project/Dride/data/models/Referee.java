@@ -3,8 +3,6 @@ package dean.project.Dride.data.models;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Set;
-
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter

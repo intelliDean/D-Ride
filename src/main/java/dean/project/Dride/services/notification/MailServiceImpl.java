@@ -4,8 +4,6 @@ import dean.project.Dride.data.dto.request.EmailNotificationRequest;
 import dean.project.Dride.data.models.User;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -42,21 +40,4 @@ public class MailServiceImpl implements MailService {
             return USER_NOT_FOUND;
         }
     }
-
-    //    @Override
-//    public String sendHTMLMail(EmailNotificationRequest request) {
-//        String url = mailConfig.getMailUrl();
-//        String apiKey = mailConfig.getApiKey();
-//
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setContentType(MediaType.APPLICATION_JSON);
-//        headers.set(MAIL_API_KEY, apiKey);  //"api-key"
-//        HttpEntity<EmailNotificationRequest> requestEntity = new HttpEntity<>(request, headers);
-//
-//        RestTemplate restTemplate = new RestTemplate();
-//        ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
-//        return response.getBody();
-//    }
-
-
 }

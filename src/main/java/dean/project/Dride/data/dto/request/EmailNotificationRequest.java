@@ -9,8 +9,8 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 
-import static dean.project.Dride.utilities.Constants.DRIDE_EMAIL;
 import static dean.project.Dride.utilities.Constants.APP_NAME;
+import static dean.project.Dride.utilities.Constants.DRIDE_EMAIL;
 
 @Getter
 @Setter

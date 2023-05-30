@@ -1,5 +1,4 @@
 package dean.project.Dride.notification;
-
 import dean.project.Dride.data.dto.request.EmailNotificationRequest;
 import dean.project.Dride.data.dto.request.Recipient;
 import dean.project.Dride.services.notification.MailService;

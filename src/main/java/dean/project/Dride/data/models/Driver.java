@@ -3,8 +3,6 @@ package dean.project.Dride.data.models;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.HashSet;
 import java.util.Set;

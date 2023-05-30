@@ -2,8 +2,8 @@ package dean.project.Dride.services.notification;
 
 import com.twilio.Twilio;
 import com.twilio.rest.api.v2010.account.Message;
-import dean.project.Dride.config.sms.SMSConfig;
 import com.twilio.type.PhoneNumber;
+import dean.project.Dride.config.sms.SMSConfig;
 import dean.project.Dride.data.dto.request.SMSNotification;
 import dean.project.Dride.data.dto.request.TwilioInfo;
 import dean.project.Dride.exceptions.DrideException;

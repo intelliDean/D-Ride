@@ -1,6 +1,6 @@
 package dean.project.Dride.services.user_service.user;
 
-import dean.project.Dride.config.security.util.JwtUtil;
+import dean.project.Dride.config.security.utilities.JwtUtil;
 import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
 import dean.project.Dride.data.dto.response.entity_dtos.UserDTO;
 import dean.project.Dride.data.models.Admin;
@@ -127,12 +127,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO getByEmail(String email) {
-        User user = getInnerUserByEmail(email);
+        User user = getUserByEmail(email);
         return modelMapper.map(user, UserDTO.class);
     }
 
     @Override
-    public User getInnerUserByEmail(String email) {
+    public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(UserNotFoundException::new);
     }

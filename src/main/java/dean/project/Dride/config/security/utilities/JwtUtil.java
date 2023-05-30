@@ -1,36 +1,37 @@
-package dean.project.Dride.config.security.util;
+package dean.project.Dride.config.security.utilities;
 
 
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.impl.TextCodec;
 import io.jsonwebtoken.security.SignatureException;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
+import java.security.Key;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 
 import static dean.project.Dride.utilities.Constants.APP_NAME;
 
-@AllArgsConstructor
-@Getter
+@Component
 public class JwtUtil {
+    private final Key key;
+    @Value("${access}")
+    public Long accessExpiration;
+    @Value("${refresh}")
+    public Long refreshExpiration;
 
-    private final String jwtSecret;
-
-    public boolean isTokenSigned(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(jwtSecret)
-                .build()
-                .isSigned(token);
+    @Autowired
+    public JwtUtil(Key key) {
+        this.key = key;
     }
+
 
     public String extractUsernameFromToken(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(jwtSecret)
+                .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
@@ -38,39 +39,37 @@ public class JwtUtil {
     }
 
     public String generateRefreshToken(String email) {
-        Date refreshExpiration = Date.from(
-                Instant.now()
-                        .plusSeconds(3600 * 24));
+        Date expiredAt = Date.from(Instant.now().plusSeconds(refreshExpiration));
         return Jwts.builder()
                 .setIssuer(APP_NAME)
+                .setIssuedAt(Date.from(Instant.now()))
                 .setSubject(email)
-                .setExpiration(refreshExpiration)
-                .signWith(SignatureAlgorithm.HS512,
-                        TextCodec.BASE64.decode(jwtSecret))
+                .setExpiration(expiredAt)
+                .signWith(key)
                 .compact();
     }
 
     public String generateAccessToken(Map<String, Object> claims, String email) {
-        Date accessExpiration = Date.from(Instant.now().plusSeconds(3600));
+        Date expiredAt = Date.from(Instant.now().plusSeconds(accessExpiration));
         return Jwts.builder()
                 .setIssuer(APP_NAME)
-                .setIssuedAt(new Date())
+                .setIssuedAt(Date.from(Instant.now()))
                 .setClaims(claims)
                 .setSubject(email)
-                .setExpiration(accessExpiration)
-                .signWith(SignatureAlgorithm.HS512,
-                        TextCodec.BASE64.decode(jwtSecret))
+                .setExpiration(expiredAt)
+                .signWith(key)
                 .compact();
     }
-    public  String generateVerificationLink(Long userId) {
+
+    public String generateVerificationLink(Long userId) {
         return "localhost:9090/api/v1/user/account/verify" + "?userId=" + userId + "&token=" + generateVerificationToken();
     }
 
-    private  String generateVerificationToken() {
+    private String generateVerificationToken() {
         Date expiration = Date.from(Instant.now().plusSeconds(86400));
         return Jwts.builder()
                 .setIssuer(APP_NAME)
-                .signWith(SignatureAlgorithm.HS256, TextCodec.BASE64.decode(jwtSecret))
+                .signWith(key)
                 .setExpiration(expiration)
                 .setIssuedAt(Date.from(Instant.now()))
                 .compact();
@@ -79,7 +78,7 @@ public class JwtUtil {
     public boolean isTokenValid(String token) {
         try {
             Jwts.parserBuilder()
-                    .setSigningKey(TextCodec.BASE64.decode(jwtSecret))
+                    .setSigningKey(key)
                     .build()
                     .parseClaimsJws(token);
             return true; // Token is signed
@@ -89,5 +88,4 @@ public class JwtUtil {
             return false; // invalid token
         }
     }
-
 }

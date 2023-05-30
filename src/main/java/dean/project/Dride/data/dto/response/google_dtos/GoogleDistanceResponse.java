@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.util.List;
 
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -13,10 +14,10 @@ import java.util.List;
 @ToString
 public class GoogleDistanceResponse {
 
-    @JsonProperty("destination_addresses")
+    @JsonProperty("destination_address")
     private List<String> destinationAddresses;
 
-    @JsonProperty("origin_addresses")
+    @JsonProperty("origin_address")
     private List<String> originAddresses;
 
     private List<DistanceMatrixRow> rows;

@@ -15,7 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -38,9 +37,9 @@ class PassengerControllerTest {
     @Test
     public void testRegisterPassenger() throws Exception {
        RegisterPassengerRequest request = new RegisterPassengerRequest();
-       request.setName("Dean");
-       request.setEmail("dean4luv@yahoo.com");
-       request.setPassword("dean_baby1234");
+       request.getCreateUser().setName("Dean");
+       request.getCreateUser().setEmail("dean4luv@yahoo.com");
+       request.getCreateUser().setPassword("dean_baby1234");
 
        String jsonRequest = objectMapper.writeValueAsString(request);
 
@@ -51,6 +50,4 @@ class PassengerControllerTest {
                     .andDo(print());
 
     }
-
-
 }

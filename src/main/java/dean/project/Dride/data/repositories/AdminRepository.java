@@ -1,7 +1,7 @@
 package dean.project.Dride.data.repositories;
 
+
 import dean.project.Dride.data.models.Admin;
-import dean.project.Dride.data.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

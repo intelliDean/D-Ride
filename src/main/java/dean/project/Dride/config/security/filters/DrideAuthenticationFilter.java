@@ -1,7 +1,8 @@
 package dean.project.Dride.config.security.filters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dean.project.Dride.config.security.util.JwtUtil;
+import dean.project.Dride.config.security.utilities.JwtUtil;
+import dean.project.Dride.config.security.utilities.LoginResponse;
 import dean.project.Dride.data.models.User;
 import dean.project.Dride.exceptions.DrideException;
 import jakarta.servlet.FilterChain;
@@ -28,8 +29,6 @@ public class DrideAuthenticationFilter extends UsernamePasswordAuthenticationFil
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final ObjectMapper mapper;
-
-
 
     /*todo
      *  to authenticate
@@ -81,17 +80,21 @@ public class DrideAuthenticationFilter extends UsernamePasswordAuthenticationFil
 
         Map<String, Object> claims = new HashMap<>();
 
-        String email = (String) authResult.getPrincipal();
+        String email = authResult.getPrincipal().toString();
         authResult.getAuthorities().forEach(role -> claims.put("claim", role));
 
 
         String accessToken = jwtUtil.generateAccessToken(claims, email);
         String refreshToken = jwtUtil.generateRefreshToken(email);
 
-        Map<String, String> tokens = Map.of("access_token", accessToken, "refresh_token", refreshToken);
+        LoginResponse loginResponse = LoginResponse.builder()
+                .message("Login successful")
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
 
         ObjectMapper mapper = new ObjectMapper();
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        mapper.writeValue(response.getOutputStream(), tokens);
+        mapper.writeValue(response.getOutputStream(), loginResponse);
     }
 }

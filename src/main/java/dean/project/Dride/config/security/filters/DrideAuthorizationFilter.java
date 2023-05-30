@@ -2,7 +2,7 @@ package dean.project.Dride.config.security.filters;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dean.project.Dride.config.security.util.JwtUtil;
+import dean.project.Dride.config.security.utilities.JwtUtil;
 import dean.project.Dride.data.dto.response.api_response.GlobalApiResponse;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,44 +31,54 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 @AllArgsConstructor
 public class DrideAuthorizationFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
-    private final GlobalApiResponse.GlobalApiResponseBuilder globalResponse;
     private final JwtUtil jwtUtil;
-    private final ObjectMapper objectMapper;
 
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request,
-                                    @NonNull HttpServletResponse response,
-                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain) throws ServletException, IOException {
 
         String authHeader = request.getHeader(AUTHORIZATION);
         String servletPath = request.getServletPath();
 
-        if (StringUtils.hasText(authHeader) && StringUtils.startsWithIgnoreCase(authHeader, "Bearer ")) {
-            String authToken = authHeader.substring("Bearer ".length());
-            if (jwtUtil.isTokenValid(authToken)) {
-                String email = jwtUtil.extractUsernameFromToken(authToken);
+        //This is doing the same as the WHITE_LIST in the SecurityConfiguration (grant free access)
+        if (grantFreeAccessTo(servletPath)) filterChain.doFilter(request, response);
+        else if (StringUtils.hasText(authHeader) && StringUtils.startsWithIgnoreCase(authHeader, BEARER)) {
+            String token = authHeader.substring(BEARER.length());
+            if (jwtUtil.isTokenValid(token)) {
+                String email = jwtUtil.extractUsernameFromToken(token);
+
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-                savedToContext(request, userDetails);
+
+                saveToContext(request, userDetails);
             } else {
-                handleAuthenticationFailure(response);
+                failedAuthentication(response);
             }
+            filterChain.doFilter(request, response);
+        } else {
+            filterChain.doFilter(request, response);
         }
-        filterChain.doFilter(request, response);
     }
 
-    private static void savedToContext(HttpServletRequest request, UserDetails userDetails) {
+    private static void saveToContext(HttpServletRequest request, UserDetails userDetails) {
         UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-        //Note: After authentication, do not save the  user password in security context holder.
-        authenticationToken.setDetails(
-                new WebAuthenticationDetailsSource().buildDetails(request));
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
     }
 
-    private void handleAuthenticationFailure(HttpServletResponse response) throws IOException {
-        GlobalApiResponse failureMessage = globalResponse.message(AUTHENTICATION_FAILED).build();
+    private static void failedAuthentication(@NotNull HttpServletResponse response) throws IOException {
+        GlobalApiResponse failedResponse = GlobalApiResponse.builder().message(AUTHENTICATION_FAILED).build();
+        ObjectMapper mapper = new ObjectMapper();
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        objectMapper.writeValue(response.getOutputStream(), failureMessage);
+        mapper.writeValue(response.getOutputStream(), failedResponse);
+    }
+
+    private boolean grantFreeAccessTo(String servletPath) {
+        List<String> allowedPaths = List.of(
+                LOGIN_URL, DRIVER_REGISTER, PASSENGER_REGISTER,
+                ADMIN_BASE_URL, VERIFY_USER, ADMIN_DETAILS);
+        return allowedPaths.contains(servletPath);
     }
 }

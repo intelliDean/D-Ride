@@ -1,9 +1,9 @@
 package dean.project.Dride.services.notification;
 
 
-import dean.project.Dride.data.dto.request.EmailNotificationRequest;
-import dean.project.Dride.data.models.User;
 //import reactor.core.publisher.Mono;
+
+import dean.project.Dride.data.dto.request.EmailNotificationRequest;
 
 public interface MailService {
     String sendHTMLMail(EmailNotificationRequest request);

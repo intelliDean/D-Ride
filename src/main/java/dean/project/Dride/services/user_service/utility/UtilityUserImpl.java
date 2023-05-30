@@ -2,7 +2,7 @@ package dean.project.Dride.services.user_service.utility;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dean.project.Dride.config.security.users.AuthenticatedUser;
-import dean.project.Dride.config.security.util.JwtUtil;
+import dean.project.Dride.config.security.utilities.JwtUtil;
 import dean.project.Dride.data.dto.request.CreateUser;
 import dean.project.Dride.data.models.User;
 import dean.project.Dride.exceptions.UserNotFoundException;

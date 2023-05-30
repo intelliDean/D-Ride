@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
-import dean.project.Dride.config.security.util.JwtUtil;
+import dean.project.Dride.config.security.utilities.JwtUtil;
 import dean.project.Dride.data.dto.request.AdminDetailsRequest;
 import dean.project.Dride.data.dto.request.EmailNotificationRequest;
 import dean.project.Dride.data.dto.request.InviteAdminRequest;

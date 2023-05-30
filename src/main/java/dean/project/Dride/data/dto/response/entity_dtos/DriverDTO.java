@@ -15,7 +15,8 @@ public class DriverDTO {
     private String phoneNumber;
     private Address address;
     private Gender gender;
-    private DriverLicense driverLicense;
+    private String licenseId;
+    private String licenseImage;
     private int age;
     private Referee referee;
     private BankInformation bankInformation;

@@ -1,0 +1,13 @@
+<!Doctype html>
+<html>
+    <body>
+        <p>Hi %s, <br />
+            We say THANK YOU for choosing uber deluxe.<br/>On this occasion,
+            we charge to you have a harmonious ride.<br/>
+            Please click the button below to activate your account.<br/>
+            <a href="%s">
+                <button>Activate</button>
+             </a>
+        </p>
+    </body>
+</html>
